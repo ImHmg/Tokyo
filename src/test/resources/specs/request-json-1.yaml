@@ -1,0 +1,21 @@
+name: request json 1
+method: POST
+endpoint: http://localhost:3000/json/j1/user
+status: 200
+headers:
+  Content-Type: application/json
+queryParams:
+  type: "json1type"
+rawBody: |
+  {
+    "name" : "${userName}",
+    "id" : "${userId}"
+  }
+
+asserts:
+  "one" : "@body json:$.user.id [==] 1"
+  "three" : "@body raw"
+
+captures:
+  "j1UserId" : "@body json:$.user.id"
+

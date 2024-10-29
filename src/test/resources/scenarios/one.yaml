@@ -1,0 +1,25 @@
+name: senario
+description: Senario description
+
+
+inputs:
+  - name: Input one
+    description: asdasd
+    data:
+      testKey: r1testKey
+      i1k2: i1k2
+      i1k3: i1k3
+
+steps:
+  - id: json1
+    name: Json Step 1
+    ref: specs/request-json-1.yaml
+    configs:
+      userId: "json1"
+      userName: "json1 name"
+  - id: json2
+    name: Json Step 2
+    ref: specs/request-json-2.yaml
+    configs:
+      userId: "${step.json1.request @queryParam type}"
+      userName: "json 2 user name"
