@@ -2,6 +2,7 @@ package co.mahmm.tokyo.http;
 
 import co.mahmm.tokyo.commons.FileReader;
 import co.mahmm.tokyo.commons.Log;
+import co.mahmm.tokyo.core.TokyoFaker;
 import com.jayway.jsonpath.JsonPath;
 import io.restassured.RestAssured;
 import io.restassured.http.Header;
@@ -18,6 +19,7 @@ import co.mahmm.tokyo.core.Context;
 import co.mahmm.tokyo.core.Step;
 import org.junit.jupiter.api.Assertions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,20 +68,20 @@ public class HttpRequestStep extends Step {
     }
 
     private String populateVariables(String text) {
-        Pattern pattern = Pattern.compile("\\$\\{([^}]+)}");
-        Matcher matcher = pattern.matcher(text);
         if(fileParseRound > 15) {
             Log.debug("Populate recursive round limit exceed");
             return text;
         }
-        if (!matcher.find()) {
+        List<String> variables = parseVariables(text);
+        if (variables.size() == 0) {
             Log.debug("No variables found to populate");
             return text;
         }
-        matcher.reset();
-        while (matcher.find()) {
-            String key = matcher.group(1);
-            String value = getVar(key);
+        for (String key : variables) {
+            String value = TokyoFaker.get(key);
+            if(value == null) {
+                value = getVar(key);
+            }
             if (value != null) {
                 text = text.replace("${" + key + "}", value);
             } else {
@@ -89,6 +91,43 @@ public class HttpRequestStep extends Step {
         fileParseRound++;
         return populateVariables(text);
     }
+
+    public List<String> parseVariables(String text) {
+        List<String> variables = new ArrayList<>();
+        int length = text.length();
+        StringBuilder currentVariable = new StringBuilder();
+        boolean insideVariable = false;
+        int braceCount = 0; // To handle nested braces
+
+        for (int i = 0; i < length; i++) {
+            char currentChar = text.charAt(i);
+
+            if (currentChar == '$' && i + 1 < length && text.charAt(i + 1) == '{') {
+                // Starting a new variable
+                insideVariable = true;
+                braceCount = 1; // Reset brace count
+                i++; // Skip past '{'
+                currentVariable.setLength(0); // Clear the current variable
+            } else if (insideVariable) {
+                if (currentChar == '{') {
+                    braceCount++; // Increment for nested brace
+                } else if (currentChar == '}') {
+                    braceCount--; // Decrement for closing brace
+                    if (braceCount == 0) {
+                        // Found a complete variable expression
+                        variables.add(currentVariable.toString().trim());
+                        insideVariable = false; // Reset for the next variable
+                    }
+                }
+                if (braceCount > 0) {
+                    currentVariable.append(currentChar); // Add character to current variable
+                }
+            }
+        }
+
+        return variables;
+    }
+
 
     private void sendRequest() {
         RequestSpecification request = RestAssured.given();
