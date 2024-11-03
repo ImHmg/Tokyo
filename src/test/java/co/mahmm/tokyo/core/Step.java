@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.InvocationTargetException;
+
 @Getter
 @Setter
 public abstract class Step {
@@ -18,13 +20,15 @@ public abstract class Step {
     public Step(StepSpec spec, Context context) {
         this.spec = spec;
         this.context = context;
+        this.preHook = getHook(this.spec.getPreHook());
+        this.postHook = getHook(this.spec.getPostHook());
     }
 
     public abstract boolean process();
 
     public void preProcess() {
         if (preHook != null) {
-            preHook.execute(this.spec, this.context);
+            preHook.execute(this);
         }else{
             Log.debug("Pre hook is null");
         }
@@ -32,7 +36,7 @@ public abstract class Step {
 
     public void postProcess() {
         if (postHook != null) {
-            postHook.execute(this.spec, this.context);
+            postHook.execute(this);
         }else{
             Log.debug("Post hook is null");
         }
@@ -77,5 +81,24 @@ public abstract class Step {
     public abstract boolean isDone();
 
     public abstract String getStepVariables(String key);
+
+    private Hook getHook(String hookRef) {
+        if(hookRef == null) {
+            return null;
+        }
+        Log.debug("Initialize hook = {}", hookRef);
+        Class<?> clazz = null;
+        try {
+            clazz = Class.forName(hookRef);
+            Hook instance = (Hook) clazz.getDeclaredConstructor().newInstance();
+            return instance;
+        } catch (Exception e) {
+            Log.error("Error while initializing hook : {}", hookRef);
+            throw new RuntimeException(e);
+        }
+
+        // Initialize a new instance of the class
+
+    }
 
 }

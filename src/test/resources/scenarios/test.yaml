@@ -1,0 +1,27 @@
+name: Test Scenario
+description: Test Scenario description
+
+inputs:
+  - id: 1
+    name: Gaming Keyboard
+    data:
+      productName: Gaming keyboard
+      productDescription: Gaming keyboard description
+  - id: 2
+    name: Gaming mouse
+    data:
+      productName: Gaming mouse
+      productDescription: Gaming mouse description
+
+steps:
+  - id: registration
+    name: User registration
+    ref: specs/json/user-registration.yaml
+  - id: login
+    name: User login
+    ref: specs/json/user-login.yaml
+  - id: add-product
+    name: Add product
+    ref: specs/json/add-product.yaml
+    preHook: "co.mahmm.tokyo.hook.PreProductHook"
+    postHook: "co.mahmm.tokyo.hook.PostProductHook"

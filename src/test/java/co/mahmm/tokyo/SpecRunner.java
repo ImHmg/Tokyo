@@ -44,7 +44,8 @@ public class SpecRunner {
         return i.stream().map(input -> {
             Log.debug("Creating scenario with input = {}", input.getId());
             Scenario scenario = initScenario(input);
-            return DynamicContainer.dynamicContainer("Scenario : " + scenario.getContext().getInputs().getName(), scenario.run());
+            String name = scenario.getContext().getInputs().getName() == null ? "" : " : " + scenario.getContext().getInputs().getName();
+            return DynamicContainer.dynamicContainer("Scenario" + name, scenario.run());
         });
     }
 

@@ -1,0 +1,19 @@
+name: User registration
+method: POST
+endpoint: ${server}/api/products
+status: 201
+headers:
+  Content-Type: application/json
+rawBody: |
+  {
+    "name": "${productName}",
+    "description": "${productDescription}",
+    "price": 49.99,
+    "stock": 150
+  }
+asserts:
+  "id not null" : "@body json:$.id [==] 677448a7-d499-4c7e-8638-819b9c318aca"
+  "name not null" : "@body json:$.name"
+
+captures:
+  "productId" : "@body json:$.id"

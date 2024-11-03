@@ -131,7 +131,7 @@ public class HttpRequestStep extends Step {
 
         for (Header header : res.headers()) {
             log.info(log("Response header: {} : {}"), header.getName(), header.getValue());
-            responseHeaders.put(header.getName(), header.getValue());
+            responseHeaders.put(header.getName().toLowerCase(), header.getValue());
         }
     }
 
@@ -156,8 +156,14 @@ public class HttpRequestStep extends Step {
     }
 
     private void captures() {
+        if(this.requestSpec.getCaptures() == null) {
+            Log.debug("No captures found");
+            return;
+        }
+
         for (Map.Entry<String, String> e : this.requestSpec.getCaptures().entrySet()) {
             String value = extractResponseValues(e.getValue());
+            Log.debug("Capture values, key: {}, value: {}", e.getKey(), value);
             setVar(e.getKey(), value);
         }
     }
@@ -165,6 +171,16 @@ public class HttpRequestStep extends Step {
 
     private boolean checkAsserts() {
         Log.debug("Start checking asserts");
+
+        if(StringUtils.isNotBlank(this.requestSpec.getStatus())) {
+            Assertions.assertEquals(String.valueOf(this.responseStatusCode), this.requestSpec.getStatus(), "Unexpected status code");
+        }
+
+        if(this.requestSpec.getAsserts() == null) {
+            Log.debug("No asserts found");
+            return true;
+        }
+
         for (Map.Entry<String, String> e : this.requestSpec.getAsserts().entrySet()) {
             Log.debug("Start checking assert = {}, expression = {}", e.getKey(), e.getValue());
             String assertKey = e.getKey();
@@ -178,7 +194,7 @@ public class HttpRequestStep extends Step {
             } else if (StringUtils.startsWith(assertExpression, "@header")) {
                 Map<String, String> parseHeaderAssertExpression = parseKVAssertExpression("@header", assertExpression);
                 String headerKey = parseHeaderAssertExpression.get("key");
-                actualValue = this.responseHeaders.get(headerKey);
+                actualValue = this.responseHeaders.get(headerKey.toLowerCase());
                 operator = parseHeaderAssertExpression.get("operator");
                 expectedValue = parseHeaderAssertExpression.get("value");
             } else if (StringUtils.startsWith(assertExpression, "@body")) {
@@ -193,6 +209,7 @@ public class HttpRequestStep extends Step {
     }
 
     private void assertValues(String actual, String expected, String operator, String key) {
+        Log.debug("Assert values actual: {}, expected: {}, operator: {}, key: {}", actual, expected, operator, key);
         if (operator == null) {
             Assertions.assertNotNull(actual, key);
         }
@@ -212,7 +229,7 @@ public class HttpRequestStep extends Step {
         } else if (StringUtils.startsWith(expression, "@header")) {
             Map<String, String> parseHeaderAssertExpression = parseKVAssertExpression("@header", expression);
             String headerKey = parseHeaderAssertExpression.get("key");
-            value = this.responseHeaders.get(headerKey);
+            value = this.responseHeaders.get(headerKey.toLowerCase());
         } else if (StringUtils.startsWith(expression, "@body")) {
             Map<String, String> parseBodyAssertExpression = parseBodyAssertExpression(expression);
             value = getValuesByExpression(this.responseBody.asString(), parseBodyAssertExpression.get("type"), parseBodyAssertExpression.get("expression"));
@@ -307,7 +324,7 @@ public class HttpRequestStep extends Step {
         if (StringUtils.startsWith(expression, "@header")) {
             Map<String, String> parseHeaderAssertExpression = parseKVAssertExpression("@header", expression);
             String headerKey = parseHeaderAssertExpression.get("key");
-            return this.responseHeaders.get(headerKey);
+            return this.responseHeaders.get(headerKey.toLowerCase());
         } else if (StringUtils.startsWith(expression, "@body")) {
             Map<String, String> parseBodyAssertExpression = parseBodyAssertExpression(expression);
             return getValuesByExpression(this.responseBody.asString(), parseBodyAssertExpression.get("type"), parseBodyAssertExpression.get("expression"));

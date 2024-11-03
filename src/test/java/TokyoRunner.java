@@ -31,6 +31,7 @@ public class TokyoRunner {
     }
 
     public static void addRunSpec(String scenarioFile, String... configFiles) {
+
         runSpecs.add(RunSpec.builder().scenarioSpec(scenarioFile).configFiles(Arrays.asList(configFiles)).build());
     }
 

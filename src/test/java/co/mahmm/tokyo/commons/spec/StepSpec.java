@@ -16,5 +16,7 @@ public class StepSpec {
     private String ref;
     private String configRef;
     private Map<String, String> configs = new HashMap<>();
+    private String preHook;
+    private String postHook;
 
 }

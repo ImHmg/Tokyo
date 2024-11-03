@@ -1,0 +1,20 @@
+name: User registration
+method: POST
+endpoint: ${server}/api/users/register
+status: 201
+headers:
+  Content-Type: application/json
+rawBody: |
+  {
+    "username": "john doe",
+    "email": "johndoe@example.com",
+    "password": "securepassword123"
+  }
+asserts:
+  "id not null" : "@body json:$.id"
+  "username not null" : "@body json:$.username"
+
+captures:
+  "userId" : "@body json:$.id"
+  "username" : "@body json:$.username"
+  "token" : "@header authorization"
