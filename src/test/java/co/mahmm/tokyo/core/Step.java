@@ -48,8 +48,8 @@ public abstract class Step {
             Log.debug("Var value found in steps variables. key = {}, val = {}", key, val);
             return val;
         }
-        if (this.context.getVars().containsKey(key)) {
-            val = this.context.getVars().get(key);
+        if (this.getContext().getVars().containsKey(key)) {
+            val = this.getContext().getVars().get(key);
             Log.debug("Var value found in context variables. key = {}, val = {}", key, val);
         }else if (this.spec.getConfigs().containsKey(key)) {
             val = this.spec.getConfigs().get(key);
@@ -67,7 +67,7 @@ public abstract class Step {
     }
 
     public void setVar(String key, String value) {
-        this.context.getVars().put(key, value);
+        this.getContext().getVars().put(key, value);
     }
 
     public String log(String message) {

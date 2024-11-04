@@ -1,11 +1,13 @@
 import co.mahmm.tokyo.SpecRunner;
 import co.mahmm.tokyo.commons.spec.RunSpec;
+import co.mahmm.tokyo.core.Context;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -15,7 +17,7 @@ public class TokyoRunner {
 
     @TestFactory
     Stream<DynamicContainer> runner() {
-        return runSpecs.stream().map(run -> {
+        return runSpecs.stream().parallel().map(run -> {
             SpecRunner specRunner = new SpecRunner(run.getScenarioSpec(), run.getConfigFiles());
             String envDescription = "";
             return DynamicContainer.dynamicContainer("Spec : " + specRunner.getSpec().getName() + envDescription, specRunner.run());

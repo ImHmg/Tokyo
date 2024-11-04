@@ -12,10 +12,10 @@ import java.util.Map;
 @Getter
 @Setter
 public class Context {
-    private Map<String, String> configs = new HashMap<>();
-    private DataSpec inputs = new DataSpec();
     private Map<String, String> vars = new HashMap<>();
     private List<Step> steps = new ArrayList<>();
+    private Map<String, String> configs = new HashMap<>();
+    private DataSpec inputs = new DataSpec();
     public Map<String, String> getInputData() {
         return inputs.getData();
     }
@@ -26,6 +26,7 @@ public class Context {
         }
         key = key.replaceFirst("step.", "");
         String[] split = key.split("\\.");
+
         for (Step step : steps) {
             if(step.isDone() && step.getSpec().getId().equals(split[0])) {
                 return step.getStepVariables(key);

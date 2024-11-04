@@ -13,13 +13,21 @@ inputs:
       productName: Gaming mouse
       productDescription: Gaming mouse description
 
-steps:
+preSteps:
   - id: registration
     name: User registration
     ref: specs/json/user-registration.yaml
   - id: login
     name: User login
     ref: specs/json/user-login.yaml
+postSteps:
+  - id: registration
+    name: User registration
+    ref: specs/json/user-registration.yaml
+  - id: login
+    name: User login
+    ref: specs/json/user-login.yaml
+steps:
   - id: add-product
     name: Add product
     ref: specs/json/add-product.yaml

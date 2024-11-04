@@ -4,6 +4,7 @@ endpoint: ${server}/api/products
 status: 201
 headers:
   Content-Type: application/json
+  Auth-Header: ${loginToken}
 rawBody: |
   {
     "name": "${productName}",

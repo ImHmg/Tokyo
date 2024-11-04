@@ -41,23 +41,11 @@ public class SpecRunner {
         }else{
             i = this.spec.getInputs();
         }
-        return i.stream().map(input -> {
-            Log.debug("Creating scenario with input = {}", input.getId());
-            Scenario scenario = initScenario(input);
-            String name = scenario.getContext().getInputs().getName() == null ? "" : " : " + scenario.getContext().getInputs().getName();
-            return DynamicContainer.dynamicContainer("Scenario" + name, scenario.run());
-        });
+        Scenario scenario = new Scenario();
+        scenario.initialize(this.spec, i);
+        return scenario.run();
     }
 
-    private Scenario initScenario(DataSpec input) {
-        Scenario scenario = new Scenario();
-        try{
-            scenario.initialize(this.spec, input);
-        }catch (Exception e) {
-            throw new RuntimeException("Unable to initialize scenario = " + this.spec.getName() + " for input " + input.getName(), e);
-        }
-        return scenario;
-    }
 
     private void parseFiles() {
         Log.debug("Parse scenario file = {}", this.specFile);
