@@ -2,6 +2,10 @@ package co.mahmm.tokyo.http;
 
 import co.mahmm.tokyo.commons.FileReader;
 import co.mahmm.tokyo.commons.Log;
+import co.mahmm.tokyo.commons.YamlParser;
+import co.mahmm.tokyo.commons.spec.StepSpec;
+import co.mahmm.tokyo.core.Context;
+import co.mahmm.tokyo.core.Step;
 import co.mahmm.tokyo.core.TokyoFaker;
 import com.jayway.jsonpath.JsonPath;
 import io.restassured.RestAssured;
@@ -13,18 +17,12 @@ import io.restassured.specification.ProxySpecification;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import co.mahmm.tokyo.commons.YamlParser;
-import co.mahmm.tokyo.commons.spec.StepSpec;
-import co.mahmm.tokyo.core.Context;
-import co.mahmm.tokyo.core.Step;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Slf4j
 public class HttpRequestStep extends Step {

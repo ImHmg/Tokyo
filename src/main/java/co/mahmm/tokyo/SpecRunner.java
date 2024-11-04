@@ -7,7 +7,6 @@ import co.mahmm.tokyo.commons.spec.DataSpec;
 import co.mahmm.tokyo.commons.spec.ScenarioSpec;
 import co.mahmm.tokyo.core.Scenario;
 import co.mahmm.tokyo.core.Step;
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.DynamicContainer;

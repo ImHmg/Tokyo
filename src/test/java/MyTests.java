@@ -1,6 +1,5 @@
-import co.mahmm.tokyo.commons.spec.RunSpec;
+import co.mahmm.tokyo.TokyoRunner;
 
-import java.util.List;
 
 public class MyTests extends TokyoRunner {
     static {
