@@ -31,5 +31,5 @@ steps:
   - id: add-product
     name: Add product
     ref: specs/json/add-product.yaml
-    preHook: "co.mahmm.tokyo.hook.PreProductHook"
-    postHook: "co.mahmm.tokyo.hook.PostProductHook"
+    preHook: "hook.PreProductHook"
+    postHook: "hook.PostProductHook"

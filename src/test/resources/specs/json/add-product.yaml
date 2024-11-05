@@ -5,6 +5,10 @@ status: 201
 headers:
   Content-Type: application/json
   Auth-Header: ${loginToken}
+queryParams:
+  page: 1
+  size: 10
+  search: hello world
 rawBody: |
   {
     "name": "${productName}",
@@ -15,6 +19,7 @@ rawBody: |
 asserts:
   "id not null" : "@body json:$.id [==] 677448a7-d499-4c7e-8638-819b9c318aca"
   "name not null" : "@body json:$.name"
+  "status is 201" : "@status [==] 201"
 
 captures:
   "productId" : "@body json:$.id"

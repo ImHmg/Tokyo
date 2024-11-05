@@ -1,8 +1,6 @@
 package co.mahmm.tokyo.http;
 
-import co.mahmm.tokyo.commons.FileReader;
-import co.mahmm.tokyo.commons.Log;
-import co.mahmm.tokyo.commons.YamlParser;
+import co.mahmm.tokyo.commons.*;
 import co.mahmm.tokyo.commons.spec.StepSpec;
 import co.mahmm.tokyo.core.Context;
 import co.mahmm.tokyo.core.Step;
@@ -23,11 +21,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static com.diogonunes.jcolor.Ansi.*;
+import static com.diogonunes.jcolor.Attribute.*;
 
-@Slf4j
 public class HttpRequestStep extends Step {
 
-    List<String> availableOperators = List.of("[==]", "[!=]", "[<>]");
+    List<String> availableOperators = List.of("[==]", "[!=]", "[<>]", "[<!>]");
     private HttpSpec requestSpec;
     private ResponseBodyExtractionOptions responseBody;
     private Map<String, String> responseHeaders = new HashMap<>();
@@ -83,7 +82,7 @@ public class HttpRequestStep extends Step {
             if (value != null) {
                 text = text.replace("${" + key + "}", value);
             } else {
-                log.warn("Value not for variable : {}", key);
+                Log.debug("Cannot find variable value for : {}", key);
             }
         }
         fileParseRound++;
@@ -130,29 +129,46 @@ public class HttpRequestStep extends Step {
     private void sendRequest() {
         RequestSpecification request = RestAssured.given();
         request = setRequestOptions(request);
-        log.info(log("HTTP request, method: {}, url: {}"), this.requestSpec.getMethod(), this.requestSpec.getEndpoint());
-        if (this.requestSpec.getQueryParams() != null) {
+        Log.debug("HTTP request, method: {}, url: {}", this.requestSpec.getMethod(), this.requestSpec.getEndpoint());
+        Console.print(colorize(" Request ", BACK_COLOR(25, 217, 156), BLACK_TEXT(),BOLD()),colorize(" " + this.requestSpec.getMethod() + " ", BLACK_TEXT(), YELLOW_BACK(), BOLD()), " " ,colorize(this.requestSpec.getEndpoint(), BLUE_TEXT()));
+        Console.print("");
+        if (this.requestSpec.getQueryParams() != null && !this.requestSpec.getQueryParams().isEmpty()) {
+            Console.print(colorize("Request query", MAGENTA_TEXT(), BOLD()));
             for (Map.Entry<String, String> e : this.requestSpec.getQueryParams().entrySet()) {
                 request = request.queryParam(e.getKey(), e.getValue());
-                log.info(log("Request query parameter: {} : {}"), e.getKey(), e.getValue());
+                Log.debug("Request query parameter: {} : {}", e.getKey(), e.getValue());
+                Console.print(colorize( e.getKey() + " : ", BOLD()), colorize(e.getValue()));
             }
+            Console.print("");
         }
-        if (this.requestSpec.getHeaders() != null) {
+        if (this.requestSpec.getHeaders() != null && !this.requestSpec.getHeaders().isEmpty()) {
+            Console.print(colorize("Request headers", MAGENTA_TEXT(), BOLD()));
             for (Map.Entry<String, String> e : this.requestSpec.getHeaders().entrySet()) {
                 request = request.header(e.getKey(), e.getValue());
-                log.info(log("Request header: {} : {}"), e.getKey(), e.getValue());
+                Log.debug("Request header: {} : {}", e.getKey(), e.getValue());
+                Console.print(colorize(e.getKey() + " : ", BOLD()), colorize(e.getValue()));
             }
+            Console.print("");
+        }
+        if (this.requestSpec.getFormBody() != null && !this.requestSpec.getFormBody().isEmpty()) {
+            Console.print(colorize("Request form body", MAGENTA_TEXT(), BOLD()));
+            for (Map.Entry<String, Object> e : this.requestSpec.getFormBody().entrySet()) {
+                request = request.formParam(e.getKey(), e.getValue());
+                Log.debug("Form param: {} : {}", this.requestSpec.getRawBody());
+                Console.print(colorize( e.getKey() + " : ", BOLD()), colorize(e.getValue().toString()));
+
+            }
+            Console.print("");
         }
         if (this.requestSpec.getRawBody() != null) {
             request.body(this.requestSpec.getRawBody());
-            log.info(log("Request Body: {}"), this.requestSpec.getRawBody());
+            Console.print(colorize("Request body", MAGENTA_TEXT(), BOLD()));
+            Console.print(colorize(this.requestSpec.getRawBody()));
+            Log.debug("Request Body: {}", this.requestSpec.getRawBody());
+            Console.print("");
+
         }
-        if (this.requestSpec.getFormBody() != null) {
-            for (Map.Entry<String, Object> e : this.requestSpec.getFormBody().entrySet()) {
-                request = request.formParam(e.getKey(), e.getValue());
-                log.info(log("Form param: {} : {}"), this.requestSpec.getRawBody());
-            }
-        }
+
         request = request.when();
         long startTime = System.nanoTime();
         Response r = request.request(this.requestSpec.getMethod(), this.requestSpec.getEndpoint());
@@ -161,21 +177,29 @@ public class HttpRequestStep extends Step {
 
         this.responseBody = res.body();
         this.responseStatusCode = res.statusCode();
+        Console.print(colorize(" Response ", BACK_COLOR(74, 232, 93), BLACK_TEXT(), BOLD()), colorize(" " + this.responseStatusCode + " " + HTTPStatus.httpStatusMap.get(this.responseStatusCode) + " [" + (time / 1_000_000) + " ms] " , BACK_COLOR(85,85,85),TEXT_COLOR(255), BOLD()));
+        Console.print("");
 
-        log.info(log("Response timing: {}ms"), time / 1_000_000);
-        log.info(log("Response code: {}"), res.statusCode());
-        log.info(log("Response body: {}"), res.body().asString());
+        Console.print(colorize("Response body", MAGENTA_TEXT(), BOLD()));
+        Console.print(colorize(this.responseBody.asPrettyString()));
+        Console.print("");
 
+        Log.debug("Response timing: {}ms", time / 1_000_000);
+        Log.debug("Response code: {}", res.statusCode());
+        Log.debug("Response body: {}", res.body().asString());
+
+        Console.print(colorize("Response headers", MAGENTA_TEXT(), BOLD()));
         for (Header header : res.headers()) {
-            log.info(log("Response header: {} : {}"), header.getName(), header.getValue());
+            Log.debug("Response header: {} : {}", header.getName(), header.getValue());
             responseHeaders.put(header.getName().toLowerCase(), header.getValue());
+            Console.print(colorize( header.getName() + " : ", BOLD()), colorize(header.getValue()));
         }
     }
 
     private RequestSpecification setRequestOptions(RequestSpecification request) {
 
         if (StringUtils.equalsIgnoreCase(getVar("TKY_DISABLE_SSL"), "TRUE")) {
-            log.info("");
+            Log.debug("SSL verification disabled");
             request = request.relaxedHTTPSValidation();
         }
 
@@ -227,7 +251,12 @@ public class HttpRequestStep extends Step {
             String expectedValue = null;
             if (StringUtils.startsWith(assertExpression, "@status")) {
                 actualValue = String.valueOf(this.responseStatusCode);
-                // TODO capture status expected value
+                String exp = assertExpression.replaceFirst("@status ", "");
+                String[] parts = exp.split(" ");
+                if(parts.length == 2) {
+                    operator = parts[0];
+                    expectedValue = parts[1];
+                }
             } else if (StringUtils.startsWith(assertExpression, "@header")) {
                 Map<String, String> parseHeaderAssertExpression = parseKVAssertExpression("@header", assertExpression);
                 String headerKey = parseHeaderAssertExpression.get("key");
@@ -255,6 +284,11 @@ public class HttpRequestStep extends Step {
         } else if ("[!=]".equals(operator)) {
             Assertions.assertNotEquals(expected, actual, key);
         } else if ("[<>]".equals(operator)) {
+            Assertions.assertTrue(StringUtils.contains(actual, expected), key);
+        } else if ("[<!>]".equals(operator)) {
+            Assertions.assertFalse(StringUtils.contains(actual, expected), key);
+        }else if ("[<...>]".equals(operator)) {
+            // TODO Impletement between
             Assertions.assertTrue(StringUtils.contains(actual, expected), key);
         }
     }

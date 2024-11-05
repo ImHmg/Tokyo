@@ -1,5 +1,6 @@
 package co.mahmm.tokyo.core;
 
+import co.mahmm.tokyo.commons.Console;
 import co.mahmm.tokyo.commons.Log;
 import co.mahmm.tokyo.commons.spec.DataSpec;
 import co.mahmm.tokyo.commons.spec.ScenarioSpec;
@@ -13,6 +14,8 @@ import org.junit.jupiter.api.DynamicTest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import static com.diogonunes.jcolor.Ansi.*;
+import static com.diogonunes.jcolor.Attribute.*;
 
 @Getter
 @Setter
@@ -69,6 +72,12 @@ public class Scenario {
 
             Step s = step;
             return DynamicTest.dynamicTest("Step : " + step.getSpec().getName(), () -> {
+                String inputName = "";
+                if(context.getInputs().getName() != null) {
+                    inputName = "["+ context.getInputs().getName() + "] ";
+                }
+                Console.print(colorize(" Start " + inputName + "[" + s.getSpec().getName() + "] ", BACK_COLOR(171, 142, 255), BOLD(), BLACK_TEXT()));
+                Console.print("");
                 Log.debug("Start pre processing {}", spec.getName());
                 s.preProcess();
                 Log.debug("Start processing {}", spec.getName());
@@ -76,7 +85,10 @@ public class Scenario {
                     Log.debug("Start post processing {}", spec.getName());
                     s.postProcess();
                 }
+                Console.print("");
+                Console.print(colorize(" End [" + s.getSpec().getName() + "] ", BACK_COLOR(192, 192, 192), BOLD(), BLACK_TEXT()));
                 Log.debug("End post processing {}", spec.getName());
+                Console.print("\n");
             });
         });
     }

@@ -1,4 +1,4 @@
-package co.mahmm.tokyo.hook;
+package hook;
 
 import co.mahmm.tokyo.core.Hook;
 import co.mahmm.tokyo.core.Step;

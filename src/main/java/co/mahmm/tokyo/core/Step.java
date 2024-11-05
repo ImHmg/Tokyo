@@ -1,11 +1,13 @@
 package co.mahmm.tokyo.core;
 
+import co.mahmm.tokyo.commons.Console;
 import co.mahmm.tokyo.commons.Log;
 import co.mahmm.tokyo.commons.spec.StepSpec;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-
+import static com.diogonunes.jcolor.Ansi.*;
+import static com.diogonunes.jcolor.Attribute.*;
 @Getter
 @Setter
 public abstract class Step {
@@ -26,7 +28,9 @@ public abstract class Step {
 
     public void preProcess() {
         if (preHook != null) {
+            Console.print(colorize("Executing pre hook [" + this.spec.getPreHook() + "]", BOLD(), UNDERLINE(), TEXT_COLOR(152)));
             preHook.execute(this);
+            Console.print("");
         }else{
             Log.debug("Pre hook is null");
         }
@@ -34,7 +38,10 @@ public abstract class Step {
 
     public void postProcess() {
         if (postHook != null) {
+            Console.print("");
+            Console.print(colorize("Executing post hook [" + this.spec.getPostHook() + "]", BOLD(), UNDERLINE(), TEXT_COLOR(152)));
             postHook.execute(this);
+            Console.print("");
         }else{
             Log.debug("Post hook is null");
         }
