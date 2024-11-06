@@ -24,7 +24,8 @@ public class SpecRunner {
     private String specFile;
     private List<String> configFiles;
     private ScenarioSpec spec;
-    private List<Step> steps = new ArrayList<>();
+
+    Scenario scenario;
 
     public SpecRunner(String specFile, List<String> configFiles) {
         this.specFile = specFile;
@@ -40,7 +41,7 @@ public class SpecRunner {
         }else{
             i = this.spec.getInputs();
         }
-        Scenario scenario = new Scenario();
+        scenario = new Scenario();
         scenario.initialize(this.spec, i);
         return scenario.run();
     }

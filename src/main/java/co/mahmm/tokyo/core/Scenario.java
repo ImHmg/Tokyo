@@ -11,8 +11,7 @@ import lombok.Setter;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicTest;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 import static com.diogonunes.jcolor.Ansi.*;
 import static com.diogonunes.jcolor.Attribute.*;
@@ -22,7 +21,7 @@ import static com.diogonunes.jcolor.Attribute.*;
 public class Scenario {
 
     private Context context = new Context();
-    private List<Step> steps = new ArrayList<>();
+    private Map<String, List<Step>> steps = new LinkedHashMap<>();
     private List<DataSpec> inputs = new ArrayList<>();
     private ScenarioSpec spec;
 
@@ -38,37 +37,44 @@ public class Scenario {
         Stream<DynamicContainer> postSteps = Stream.empty();
         Stream<DynamicContainer> scenarioSteps = Stream.empty();
 
-        if(this.spec.getPreSteps() != null || !this.spec.getPreSteps().isEmpty()) {
+        if(this.spec.getPreSteps() != null && !this.spec.getPreSteps().isEmpty()) {
             Log.debug("Adding pre steps");
-             preSteps = Stream.of(DynamicContainer.dynamicContainer("Pre Steps", runSteps(this.spec.getPreSteps())));
+             preSteps = Stream.of("1").map(i -> {
+                 return DynamicContainer.dynamicContainer("Pre Steps", runSteps(this.spec.getPreSteps(), "Pre Steps"));
+             });
         }
 
         scenarioSteps = this.inputs.stream().map(i -> {
             context.setInputs(i);
             String name = i.getName() == null ? "" : " : " + i.getName();
-            return DynamicContainer.dynamicContainer("Scenario" + name, runSteps(this.spec.getSteps()));
+            return DynamicContainer.dynamicContainer("Scenario" + name, runSteps(this.spec.getSteps(), "Scenario" + name));
         });
 
-        if(this.spec.getPostSteps() != null || !this.spec.getPostSteps().isEmpty()) {
+        if(this.spec.getPostSteps() != null && !this.spec.getPostSteps().isEmpty()) {
             Log.debug("Adding post steps");
-            postSteps = Stream.of(DynamicContainer.dynamicContainer("Post Steps", runSteps(this.spec.getPreSteps())));
+            postSteps = Stream.of("1").map(i -> {
+                return DynamicContainer.dynamicContainer("Post Steps", runSteps(this.spec.getPreSteps(), "Post Steps"));
+            });
         }
         return Stream.concat(Stream.concat(preSteps, scenarioSteps), postSteps);
     }
 
 
-    private Stream<DynamicTest> runSteps(List<StepSpec> stepSpecs) {
+    private Stream<DynamicTest> runSteps(List<StepSpec> stepSpecs, String key) {
         Log.debug("Start running scenario");
+        if(!steps.containsKey(key)) {
+            steps.put(key, new ArrayList<>());
+        }
         return stepSpecs.stream().map(spec -> {
             Step step = null;
             if (spec.equals("custom")) {
-
+                // TODO : implement custom steps
             }else{
                 Log.debug("Initialize http step = {}", spec.getName());
                 step = new HttpRequestStep(spec, this.context);
             }
-            this.steps.add(step);
-            this.context.setSteps(this.steps);
+            this.steps.get(key).add(step);
+            this.context.getSteps().add(step);
 
             Step s = step;
             return DynamicTest.dynamicTest("Step : " + step.getSpec().getName(), () -> {
