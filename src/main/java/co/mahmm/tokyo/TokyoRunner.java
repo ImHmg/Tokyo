@@ -46,6 +46,10 @@ public class TokyoRunner {
         runSpecs.add(RunSpec.builder().scenarioSpec(scenarioFile).configFiles(Arrays.asList(configFiles)).build());
     }
 
+    public static void addRunSpec(RunSpec spec) {
+        runSpecs.add(spec);
+    }
+
     @AfterEach
     public  void generateReport() {
         ReportGenerator.generateReports(this.specs);

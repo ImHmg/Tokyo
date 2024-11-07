@@ -18,12 +18,27 @@ public class ReportGenerator {
         for (SpecRunner spec : specs) {
 
             Map<String, Object> report = new HashMap<>();
-            report.put("title", StringUtils.defaultString(spec.getRunSpec().getReportTitle(), spec.getSpec().getName()));
-            report.put("date", System.currentTimeMillis());
-            report.put("user", StringUtils.defaultString(System.getenv("TKY_USER"), System.getProperty("user.name")));
+
+            String title = spec.getRunSpec().getReportSpec().getReportTitle();
+            if(StringUtils.isEmpty(title)) {
+                title = spec.getSpec().getName();
+            }
+
+            String user = spec.getRunSpec().getReportSpec().getUser();
+            if(StringUtils.isEmpty(user)) {
+                user = System.getProperty("user.name");
+            }
+
+            report.put("title", title);
+            report.put("date",  new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
+            report.put("user", user);
             List<Object> sections = new ArrayList<>();
             report.put("sections", sections);
 
+
+            int total = 0;
+            int passed = 0;
+            int failed = 0;
 
             for (Map.Entry<String, List<Step>> e : spec.getScenario().getSteps().entrySet()) {
                 Map<String, Object> section = new HashMap<>();
@@ -35,8 +50,12 @@ public class ReportGenerator {
                     Map<String, Object> s = new HashMap<>();
                     s.put("name", step.getSpec().getName());
                     s.put("status", step.isPassed());
+                    total++;
                     if(!step.isPassed()) {
                         section.put("status", false);
+                        failed++;
+                    }else{
+                        passed++;
                     }
                     s.put("asserts", new ArrayList<>());
                     for (AssertResult assertsResult : step.getAssertsResults()) {
@@ -48,23 +67,33 @@ public class ReportGenerator {
                 }
                 sections.add(section);
             }
-            String fileName = spec.getSpec().getName();
-            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-            String sanitizedFileName = fileName.replaceAll("[\\\\/:*?\"<>|]", "_");
-            saveTestReport(JsonParser.toJson(report), sanitizedFileName + "_" + timeStamp);
+            report.put("totalCount", total);
+            report.put("passedCount", passed);
+            report.put("failedCount", failed);
+
+            String filename = spec.getRunSpec().getReportSpec().getFile();
+            if(filename == null) {
+                filename = StringUtils.defaultString(System.getenv("TKY_REPORT_DIR"), "build/tokyo");
+                String r = spec.getSpec().getName();
+                r = r.replaceAll("[\\\\/:*?\"<>|]", "_");
+                r = r + "_" +new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".html";
+                filename += "/" + r;
+            }
+            saveTestReport(JsonParser.toJson(report), filename);
+            if(spec.getRunSpec().getReportSpec().getCompletion() != null) {
+                Log.debug("Calling completion block");
+                spec.getRunSpec().getReportSpec().getCompletion().completion(filename);
+            }
         }
     }
 
-    private static void saveTestReport(String content, String filename) {
+    private static void saveTestReport(String content, String filePath) {
         String s = FileReader.readFile("tky-test-report.html");
         String testdata = s.replace("__TESTDATA__", content);
-        String buildDirPath = StringUtils.defaultString(System.getenv("TKY_REPORT_DIR"), "build/tokyo");
-        File buildDir = new File(buildDirPath);
-
-        if (!buildDir.exists()) {
-            buildDir.mkdirs();
+        File file = new File(filePath);
+        if(!file.getParentFile().exists()) {
+            file.getParentFile().mkdirs();
         }
-        File file = new File(buildDir, filename + ".html");
         try {
             FileUtils.writeStringToFile(file, testdata);
             Log.debug("Report created at = {}", file.getAbsoluteFile());

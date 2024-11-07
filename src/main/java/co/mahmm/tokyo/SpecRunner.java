@@ -7,7 +7,6 @@ import co.mahmm.tokyo.commons.spec.DataSpec;
 import co.mahmm.tokyo.commons.spec.RunSpec;
 import co.mahmm.tokyo.commons.spec.ScenarioSpec;
 import co.mahmm.tokyo.core.Scenario;
-import co.mahmm.tokyo.core.Step;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.DynamicContainer;
@@ -22,14 +21,14 @@ import java.util.stream.Stream;
 @Setter
 public class SpecRunner {
 
-    private String specFile;
+    private String specFilePath;
     private List<String> configFiles;
     private ScenarioSpec spec;
     private RunSpec runSpec;
     private Scenario scenario;
 
     public SpecRunner(RunSpec runSpec) {
-        this.specFile = runSpec.getScenarioSpec();
+        this.specFilePath = runSpec.getScenarioSpec();
         this.configFiles = runSpec.getConfigFiles();
         this.runSpec = runSpec;
         this.parseFiles();
@@ -50,8 +49,8 @@ public class SpecRunner {
 
 
     private void parseFiles() {
-        Log.debug("Parse scenario file = {}", this.specFile);
-        String content = FileReader.readFile(this.specFile);
+        Log.debug("Parse scenario file = {}", this.specFilePath);
+        String content = FileReader.readFile(this.specFilePath);
         this.spec = YamlParser.parse(content, ScenarioSpec.class);
         Map<String, String> configs = new HashMap<>();
         configs.putAll(this.spec.getConfigs());
@@ -66,6 +65,4 @@ public class SpecRunner {
         this.spec.setConfigs(configs);
 
     }
-
-
 }
