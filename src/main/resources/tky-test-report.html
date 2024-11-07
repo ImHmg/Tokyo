@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Test Report with Vue.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+            crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: monospace
+        }
+
+        .bg-green {
+            background: #2ecc71 !important;
+            color: white !important
+        }
+
+        .bg-red {
+            background: #e74c3c !important;
+            color: white !important
+        }
+        .transparent-table {
+            background-color: #ecf0f1;
+        }
+        .transparent-table th,
+        .transparent-table td {
+            background-color: #ecf0f1; /* Makes each cell transparent */
+        }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+    <h1 class="mt-3">{{ reportData.title }}</h1>
+    <div class="summery p-3" style="border-radius: 10px; background: #34495e">
+        <h3 style="color: white"><b>Summery</b></h3>
+        <div>
+            <table class="table table-bordered transparent-table" >
+                <tr>
+                    <td style="width: 180px" >
+                        <b>Date</b>
+                    </td>
+                    <td>
+                        {{ new Date(reportData.date).toLocaleString() }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>User</b>
+                    </td>
+                    <td>
+                        {{ reportData.user }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <b>Total test cases</b>
+                    </td>
+                    <td>
+                        50
+                    </td>
+                </tr>
+                <tr>
+                    <td >
+                        <b>Passed</b>
+                    </td>
+                    <td c>
+                        50
+                    </td>
+                </tr>
+                <tr >
+                    <td >
+                        <b>Failed</b>
+                    </td>
+                    <td >
+                        50
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div v-for="section in reportData.sections" :key="section.title" class="p-2">
+        <h5 class="mt-5">
+            <span :class="section.status ? 'badge bg-green' : 'badge bg-red'" align="center">
+                <b>{{ section.status ? '✓' : '✗' }}</b>
+            </span>
+            <b>&nbsp;{{ section.title }}</b></h5>
+        <table class="table table-bordered">
+            <tr>
+                <th style="width: 400px;">Step Name</th>
+                <th style="width: 100px;">Status</th>
+                <th>Assertions</th>
+                <th style="width: 100px;">Details</th>
+            </tr>
+            <tr v-for="step in section.steps" :key="step.name">
+                <td>{{ step.name }}</td>
+                <td :class="step.status ? 'bg-green' : 'bg-red'" align="center">
+                    <b>{{ step.status ? '✓ Passed' : '✗ Failed' }}</b>
+                </td>
+                <td>
+                    <ul>
+                        <li v-for="assertion in step.asserts" :key="assertion.name">
+                            <span :class="assertion.status ? 'badge  bg-green' : 'badge bg-red'">
+                                {{ assertion.status ? '✓' : '✗' }}
+                            </span>
+                            {{ assertion.name }}
+                        </li>
+                    </ul>
+                </td>
+                <td class="details">
+                    <div class="d-grid gap-2 mx-auto">
+                        <button class="btn btn-xs btn-outline-secondary" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;" data-bs-toggle="modal" data-bs-target="#exampleModal" @click="openDetails(step.details)">Details</button>
+                        <button class="btn btn-sm btn-outline-secondary" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;" v-if="!section.status"data-bs-toggle="modal" data-bs-target="#exampleModal" @click="openAsserts(step)">Assertions</button>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="modal fade modal-lg" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" v-html="modelContent" v-if="modelContent != null">
+
+                </div>
+                <div class="modal-body"  v-if="stepContent != null">
+                    <table v-if="stepContent != null" class="table table-bordered">
+                        <tr>
+                            <th style="width: 25px">#</th>
+                            <th>Description</th>
+                            <th>Expected</th>
+                            <th>Actual</th>
+                        </tr>
+                        <tr v-for="assertion in stepContent.asserts" :key="assertion.name">
+                            <td>
+                                <span :class="assertion.status ? 'badge  bg-green' : 'badge bg-red'">
+                                    {{ assertion.status ? '✓' : '✗' }}
+                                </span>
+                            </td>
+                            <td>{{ assertion.name }}</td>
+                            <td>{{assertion.expected}}</td>
+                            <td>{{assertion.actual}}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+<script>
+// Sample JSON data
+const jsonData = {
+    "date": 1730898124639,
+    "title": "Test Scenario",
+    "sections": [
+        {
+            "title": "Pre Steps",
+            "steps": [
+                {
+                    "name": "User registration",
+                    "status": true,
+                    "time": 626,
+                    "asserts": [
+                        {"name": "Status code check", "status": true},
+                        {"name": "id not null", "status": true},
+                        {"name": "username not null", "status": true}
+                    ],
+                    "details": "<pre>Request and Response details here</pre>"
+                }
+                // Add more steps as needed
+            ]
+        }
+        // Add more sections as needed
+    ]
+};
+
+// Vue instance
+new Vue({
+    el: '#app',
+    data: {
+        modelContent: "",
+        stepContent: null,
+        reportData: {"date":1730943783377,"title":"Test Scenario","user":"Hasitha","sections":[{"title":"Pre Steps","steps":[{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":true,"actual":"677448a7-d499-4c7e-8638-8f9b9c318aca"},{"name":"username not null","status":true,"actual":"john doe"}],"name":"User registration","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/users/register</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br></i><b>Request body: </b><i><br>{\n  \"username\": \"john doe\",\n  \"email\": \"johndoe@example.com\",\n  \"password\": \"securepassword123\"\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        authorization: Bearer test-auth-header<br>        date: Thu, 07 Nov 2024 01:43:02 GMT<br>        content-length: 188<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-8f9b9c318aca\",\n    \"username\": \"john doe\",\n    \"email\": \"johndoe@example.com\",\n    \"createdAt\": \"Fri Apr 26 2024 20:01:50 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>550 ms</i><br><br><br></pre>","time":550,"status":true},{"asserts":[{"name":"Status code check","status":true,"expected":"200","actual":"200"},{"name":"expected token","status":true,"expected":"test token","actual":"test token"}],"name":"User login","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/users/login</i><br><b>Expected Status: </b><i>200</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br></i><b>Request body: </b><i><br>{\n  \"email\": \"johndoe@example.com\",\n  \"password\": \"securepassword123\"\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>200<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:02 GMT<br>        content-length: 27<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"token\": \"test token\"\n}</i><br><b>Response time: </b><i>34 ms</i><br><br><br></pre>","time":34,"status":true}],"status":true},{"title":"Scenario : Gaming Keyboard","steps":[{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming keyboard\",\n  \"description\": \"Gaming keyboard description\",\n  \"price\": 11.35,\n  \"stock\": 292\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:02 GMT<br>        content-length: 255<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.25952978641726077,\n    \"stock\": 19842,\n    \"createdAt\": \"Sun Sep 22 2024 17:31:38 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>25 ms</i><br><br><br></pre>","time":25,"status":false},{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product 1","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming keyboard\",\n  \"description\": \"Gaming keyboard description\",\n  \"price\": 46.21,\n  \"stock\": 760\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:02 GMT<br>        content-length: 252<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.4968765489757061,\n    \"stock\": 266,\n    \"createdAt\": \"Tue Aug 06 2024 17:56:56 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>29 ms</i><br><br><br></pre>","time":29,"status":false},{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product 2","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming keyboard\",\n  \"description\": \"Gaming keyboard description\",\n  \"price\": 07.84,\n  \"stock\": 859\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:02 GMT<br>        content-length: 255<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.18333396152593195,\n    \"stock\": 31791,\n    \"createdAt\": \"Mon Jan 22 2024 02:19:09 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>37 ms</i><br><br><br></pre>","time":37,"status":false},{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product 3","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming keyboard\",\n  \"description\": \"Gaming keyboard description\",\n  \"price\": 77.95,\n  \"stock\": 799\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:02 GMT<br>        content-length: 255<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.07187337637878954,\n    \"stock\": 18491,\n    \"createdAt\": \"Wed Oct 23 2024 23:48:02 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>23 ms</i><br><br><br></pre>","time":23,"status":false},{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product 4","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming keyboard\",\n  \"description\": \"Gaming keyboard description\",\n  \"price\": 34.40,\n  \"stock\": 718\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:03 GMT<br>        content-length: 255<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.09932879405096173,\n    \"stock\": 82913,\n    \"createdAt\": \"Fri Aug 16 2024 08:38:37 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>39 ms</i><br><br><br></pre>","time":39,"status":false}],"status":false},{"title":"Scenario : Gaming mouse","steps":[{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming mouse\",\n  \"description\": \"Gaming mouse description\",\n  \"price\": 91.53,\n  \"stock\": 856\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:03 GMT<br>        content-length: 254<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.9084151212591678,\n    \"stock\": 39554,\n    \"createdAt\": \"Sun Jul 14 2024 03:55:50 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>23 ms</i><br><br><br></pre>","time":23,"status":false},{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product 1","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming mouse\",\n  \"description\": \"Gaming mouse description\",\n  \"price\": 34.32,\n  \"stock\": 662\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:03 GMT<br>        content-length: 255<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.15656221006065607,\n    \"stock\": 98106,\n    \"createdAt\": \"Sat Jul 27 2024 12:22:11 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>21 ms</i><br><br><br></pre>","time":21,"status":false},{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product 2","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming mouse\",\n  \"description\": \"Gaming mouse description\",\n  \"price\": 93.85,\n  \"stock\": 421\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:03 GMT<br>        content-length: 254<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.8684370520059019,\n    \"stock\": 13835,\n    \"createdAt\": \"Tue Jan 16 2024 04:23:15 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>37 ms</i><br><br><br></pre>","time":37,"status":false},{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product 3","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming mouse\",\n  \"description\": \"Gaming mouse description\",\n  \"price\": 28.72,\n  \"stock\": 830\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:03 GMT<br>        content-length: 255<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.32336778403259814,\n    \"stock\": 77032,\n    \"createdAt\": \"Wed Apr 03 2024 02:49:43 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>40 ms</i><br><br><br></pre>","time":40,"status":false},{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":false,"expected":"67448a7-d499-4c7e-8638-819b9c318aca","actual":"677448a7-d499-4c7e-8638-819b9c318aca"},{"name":"name not null","status":true,"actual":"Gaming Keyboard"},{"name":"status is 201","status":false,"expected":"200","actual":"201"}],"name":"Add product 4","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/products</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br>        Auth-Header: test token<br></i><b>Request query: </b><i><br>        page: 1<br>        size: 10<br>        search: hello world<br></i><b>Request body: </b><i><br>{\n  \"name\": \"Gaming mouse\",\n  \"description\": \"Gaming mouse description\",\n  \"price\": 76.64,\n  \"stock\": 180\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:03 GMT<br>        content-length: 254<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-819b9c318aca\",\n    \"name\": \"Gaming Keyboard\",\n    \"description\": \"Gaming Keyboard Description\",\n    \"price\": 0.4152336581610143,\n    \"stock\": 56479,\n    \"createdAt\": \"Wed Oct 09 2024 00:41:46 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>40 ms</i><br><br><br></pre>","time":40,"status":false}],"status":false},{"title":"Post Steps","steps":[{"asserts":[{"name":"Status code check","status":true,"expected":"201","actual":"201"},{"name":"id not null","status":true,"actual":"677448a7-d499-4c7e-8638-8f9b9c318aca"},{"name":"username not null","status":true,"actual":"john doe"}],"name":"User registration","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/users/register</i><br><b>Expected Status: </b><i>201</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br></i><b>Request body: </b><i><br>{\n  \"username\": \"john doe\",\n  \"email\": \"johndoe@example.com\",\n  \"password\": \"securepassword123\"\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>201<br><b>Response headers: </b><i><br>        authorization: Bearer test-auth-header<br>        date: Thu, 07 Nov 2024 01:43:03 GMT<br>        content-length: 188<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"id\": \"677448a7-d499-4c7e-8638-8f9b9c318aca\",\n    \"username\": \"john doe\",\n    \"email\": \"johndoe@example.com\",\n    \"createdAt\": \"Wed Jul 10 2024 01:50:23 GMT+0800 (Singapore Standard Time)\"\n}</i><br><b>Response time: </b><i>35 ms</i><br><br><br></pre>","time":35,"status":true},{"asserts":[{"name":"Status code check","status":true,"expected":"200","actual":"200"},{"name":"expected token","status":true,"expected":"test token","actual":"test token"}],"name":"User login","details":"<pre><b><u>Request</u></b><br><br><b>Method: </b><i>POST</i><br><b>Endpoint: </b><i>http://localhost:3000/api/users/login</i><br><b>Expected Status: </b><i>200</i><br><b>Request headers : </b><i><br>        Content-Type: application/json<br></i><b>Request body: </b><i><br>{\n  \"email\": \"johndoe@example.com\",\n  \"password\": \"securepassword123\"\n}\n</i><br><br><b><u>Response</u></b><br><br><b>Response status: </b><i>200<br><b>Response headers: </b><i><br>        date: Thu, 07 Nov 2024 01:43:03 GMT<br>        content-length: 27<br>        keep-alive: timeout=5<br>        content-type: application/json; charset=utf-8<br>        connection: keep-alive<br></i><b>Response body: </b><i><br>{\n    \"token\": \"test token\"\n}</i><br><b>Response time: </b><i>41 ms</i><br><br><br></pre>","time":41,"status":true}],"status":true}]}
+     },
+    methods: {
+        openDetails(data) {
+            this.stepContent = null;
+            this.modelContent = data;
+        },
+        openAsserts(data) {
+            this.modelContent = null;
+            this.stepContent = data;
+
+        }
+  }
+});
+
+</script>
+
+</body>
+</html>

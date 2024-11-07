@@ -4,6 +4,7 @@ import co.mahmm.tokyo.commons.FileReader;
 import co.mahmm.tokyo.commons.Log;
 import co.mahmm.tokyo.commons.YamlParser;
 import co.mahmm.tokyo.commons.spec.DataSpec;
+import co.mahmm.tokyo.commons.spec.RunSpec;
 import co.mahmm.tokyo.commons.spec.ScenarioSpec;
 import co.mahmm.tokyo.core.Scenario;
 import co.mahmm.tokyo.core.Step;
@@ -24,12 +25,13 @@ public class SpecRunner {
     private String specFile;
     private List<String> configFiles;
     private ScenarioSpec spec;
+    private RunSpec runSpec;
+    private Scenario scenario;
 
-    Scenario scenario;
-
-    public SpecRunner(String specFile, List<String> configFiles) {
-        this.specFile = specFile;
-        this.configFiles = configFiles;
+    public SpecRunner(RunSpec runSpec) {
+        this.specFile = runSpec.getScenarioSpec();
+        this.configFiles = runSpec.getConfigFiles();
+        this.runSpec = runSpec;
         this.parseFiles();
     }
 

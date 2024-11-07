@@ -17,6 +17,9 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.api.parallel.Execution;
+import org.opentest4j.AssertionFailedError;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,11 +57,9 @@ public class HttpRequestStep extends Step {
     @Override
     public boolean process() {
         this.sendRequest();
-        assertStatus = this.checkAsserts();
-        if (!assertStatus) {
-            isDone = true;
-            return false;
-        }
+        List<Executable> executables = this.checkAsserts();
+        Assertions.assertAll(executables);
+        assertStatus = true;
         this.captures();
         isDone = true;
         return true;
@@ -240,17 +241,16 @@ public class HttpRequestStep extends Step {
     }
 
 
-    private boolean checkAsserts() {
+    private List<Executable> checkAsserts() {
         Log.debug("Start checking asserts");
-
+        List<Executable> assertions = new ArrayList<>();
         if (StringUtils.isNotBlank(this.requestSpec.getStatus())) {
-            Assertions.assertEquals(String.valueOf(this.responseStatusCode), this.requestSpec.getStatus(), "Unexpected status code");
-            assertResults.add(new AssertResult("Status code check", true));
+            assertions.add(assertValues(String.valueOf(this.responseStatusCode), this.requestSpec.getStatus(), "[==]", "Status code check"));
         }
 
         if (this.requestSpec.getAsserts() == null) {
             Log.debug("No asserts found");
-            return true;
+            return assertions;
         }
 
         for (Map.Entry<String, String> e : this.requestSpec.getAsserts().entrySet()) {
@@ -280,29 +280,36 @@ public class HttpRequestStep extends Step {
                 expectedValue = parseBodyAssertExpression.get("value");
                 actualValue = getValuesByExpression(this.responseBody.asString(), parseBodyAssertExpression.get("type"), parseBodyAssertExpression.get("expression"));
             }
-            assertValues(actualValue, expectedValue, operator, assertKey);
+            assertions.add(assertValues(actualValue, expectedValue, operator, assertKey));
         }
-        return true;
+        return assertions;
     }
 
-    private void assertValues(String actual, String expected, String operator, String key) {
-        Log.debug("Assert values actual: {}, expected: {}, operator: {}, key: {}", actual, expected, operator, key);
-        if (operator == null) {
-            Assertions.assertNotNull(actual, key);
-        }
-        if ("[==]".equals(operator)) {
-            Assertions.assertEquals(expected, actual, key);
-        } else if ("[!=]".equals(operator)) {
-            Assertions.assertNotEquals(expected, actual, key);
-        } else if ("[<>]".equals(operator)) {
-            Assertions.assertTrue(StringUtils.contains(actual, expected), key);
-        } else if ("[<!>]".equals(operator)) {
-            Assertions.assertFalse(StringUtils.contains(actual, expected), key);
-        } else if ("[<...>]".equals(operator)) {
-            // TODO Impletement between
-            Assertions.assertTrue(StringUtils.contains(actual, expected), key);
-        }
-        assertResults.add(new AssertResult(key, true));
+    private Executable assertValues(String actual, String expected, String operator, String key) {
+        return () -> {
+            Log.debug("Assert values actual: {}, expected: {}, operator: {}, key: {}", actual, expected, operator, key);
+            try {
+                if (operator == null) {
+                    Assertions.assertNotNull(actual, key);
+                }
+                if ("[==]".equals(operator)) {
+                    Assertions.assertEquals(expected, actual, key);
+                } else if ("[!=]".equals(operator)) {
+                    Assertions.assertNotEquals(expected, actual, key);
+                } else if ("[<>]".equals(operator)) {
+                    Assertions.assertTrue(StringUtils.contains(actual, expected), key);
+                } else if ("[<!>]".equals(operator)) {
+                    Assertions.assertFalse(StringUtils.contains(actual, expected), key);
+                } else if ("[<...>]".equals(operator)) {
+                    // TODO Impletement between
+                    Assertions.assertTrue(StringUtils.contains(actual, expected), key);
+                }
+                assertResults.add(new AssertResult(key, true, expected, actual));
+            } catch (AssertionFailedError e) {
+                assertResults.add(new AssertResult(key, false, e.getExpected().getStringRepresentation(), e.getActual().getStringRepresentation()));
+                throw e;
+            }
+        };
     }
 
     public String extractResponseValues(String expression) {
@@ -490,7 +497,7 @@ public class HttpRequestStep extends Step {
 
         StringBuilder response = new StringBuilder();
         response.append("<b>Response status: </b><i>").append(this.responseStatusCode).append("<br>");
-        if(!this.responseHeaders.isEmpty()) {
+        if (!this.responseHeaders.isEmpty()) {
             response.append("<b>Response headers: </b><i>").append("<br>");
             for (Map.Entry<String, String> s : this.getResponseHeaders().entrySet()) {
                 response.append("        ").append(s.getKey()).append(": ").append(s.getValue()).append("<br>");

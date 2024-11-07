@@ -12,5 +12,7 @@ import java.util.List;
 @Builder
 public class RunSpec {
     private String scenarioSpec;
+    private String reportTitle;
     private List<String> configFiles = new ArrayList<>();
+
 }

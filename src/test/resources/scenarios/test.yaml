@@ -33,3 +33,23 @@ steps:
     ref: specs/json/add-product.yaml
     preHook: "hook.PreProductHook"
     postHook: "hook.PostProductHook"
+  - id: add-product1
+    name: Add product 1
+    ref: specs/json/add-product.yaml
+    preHook: "hook.PreProductHook"
+    postHook: "hook.PostProductHook"
+  - id: add-product2
+    name: Add product 2
+    ref: specs/json/add-product.yaml
+    preHook: "hook.PreProductHook"
+    postHook: "hook.PostProductHook"
+  - id: add-product3
+    name: Add product 3
+    ref: specs/json/add-product.yaml
+    preHook: "hook.PreProductHook"
+    postHook: "hook.PostProductHook"
+  - id: add-product4
+    name: Add product 4
+    ref: specs/json/add-product.yaml
+    preHook: "hook.PreProductHook"
+    postHook: "hook.PostProductHook"
