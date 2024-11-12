@@ -58,16 +58,16 @@ public class HttpRequestStep extends Step {
     @Override
     public boolean process() {
         this.sendRequest();
-        if (isHttpRequestDone) {
-            List<Executable> executables = this.checkAsserts();
-            Assertions.assertAll(executables);
-            assertStatus = true;
-            this.captures();
-            isDone = true;
-            printCurl();
-            return true;
+        if (!isHttpRequestDone) {
+            return false;
         }
-        return false;
+        printCurl();
+        List<Executable> executables = this.checkAsserts();
+        Assertions.assertAll(this.getSpec().getName(), executables);
+        assertStatus = true;
+        this.captures();
+        isDone = true;
+        return true;
     }
 
     private HttpSpec parseRefFileContent() {
