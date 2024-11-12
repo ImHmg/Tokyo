@@ -8,7 +8,7 @@ import java.util.List;
 
 public class MyTests extends TokyoRunner {
     static {
-        TokyoRunner.addRunSpec( "scenarios/test2.yaml", "env/local.yaml");
+//        TokyoRunner.addRunSpec( "scenarios/test2.yaml", "env/local.yaml");
         TokyoRunner.addRunSpec(RunSpec.builder()
                         .scenarioSpec("scenarios/test.yaml")
                         .configFiles(List.of("env/local.yaml"))
