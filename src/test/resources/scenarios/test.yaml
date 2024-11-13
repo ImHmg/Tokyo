@@ -1,18 +1,6 @@
 name: Test Scenario
 description: Test Scenario description
 
-inputs:
-  - id: 1
-    name: Gaming Keyboard
-    data:
-      productName: Gaming keyboard
-      productDescription: Gaming keyboard description
-  - id: 2
-    name: Gaming mouse
-    data:
-      productName: Gaming mouse
-      productDescription: Gaming mouse description
-
 preSteps:
   - id: registration
     name: User registration
@@ -24,9 +12,8 @@ postSteps:
   - id: registration
     name: User registration
     ref: specs/json/user-registration.yaml
-  - id: login
-    name: User login
-    ref: specs/json/user-login.yaml
+    configs:
+      username: "${prompt Enter name please ?}"
 steps:
   - id: add-product
     name: Add product

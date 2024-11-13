@@ -53,7 +53,7 @@ public class Scenario {
         if(this.spec.getPostSteps() != null && !this.spec.getPostSteps().isEmpty()) {
             Log.debug("Adding post steps");
             postSteps = Stream.of("1").map(i -> {
-                return DynamicContainer.dynamicContainer("Post Steps", runSteps(this.spec.getPreSteps(), "Post Steps"));
+                return DynamicContainer.dynamicContainer("Post Steps", runSteps(this.spec.getPostSteps(), "Post Steps"));
             });
         }
         return Stream.concat(Stream.concat(preSteps, scenarioSteps), postSteps);

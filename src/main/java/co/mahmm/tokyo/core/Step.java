@@ -8,10 +8,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.*;
 import java.util.List;
 
 import static com.diogonunes.jcolor.Ansi.*;
 import static com.diogonunes.jcolor.Attribute.*;
+
 @Getter
 @Setter
 public abstract class Step {
@@ -35,7 +37,7 @@ public abstract class Step {
             Console.print(colorize("Executing pre hook [" + this.spec.getPreHook() + "]", BOLD(), UNDERLINE(), TEXT_COLOR(152)));
             preHook.execute(this);
             Console.print("");
-        }else{
+        } else {
             Log.debug("Pre hook is null");
         }
     }
@@ -46,7 +48,7 @@ public abstract class Step {
             Console.print(colorize("Executing post hook [" + this.spec.getPostHook() + "]", BOLD(), UNDERLINE(), TEXT_COLOR(152)));
             postHook.execute(this);
             Console.print("");
-        }else{
+        } else {
             Log.debug("Post hook is null");
         }
     }
@@ -58,18 +60,18 @@ public abstract class Step {
             return val;
         }
         if (this.getContext().getVars().containsKey(key)) {
-            val = this.getContext().getVars().get(key);
+            val = String.valueOf(this.getContext().getVars().get(key));
             Log.debug("Var value found in context variables. key = {}, val = {}", key, val);
-        }else if (this.spec.getConfigs().containsKey(key)) {
+        } else if (this.spec.getConfigs().containsKey(key)) {
             val = this.spec.getConfigs().get(key);
             Log.debug("Var value found in current step configs. key = {}, val = {}", key, val);
-        }else if (this.context.getInputData().containsKey(key)) {
-            val = this.context.getInputData().get(key);
+        } else if (this.context.getInputData().containsKey(key)) {
+            val = String.valueOf(this.context.getInputData().get(key));
             Log.debug("Var value found in current inputs. key = {}, val = {}", key, val);
-        }else if(this.context.getConfigs().containsKey(key)){
-            val = this.context.getConfigs().get(key);
+        } else if (this.context.getConfigs().containsKey(key)) {
+            val = String.valueOf(this.context.getConfigs().get(key));
             Log.debug("Var value found in scenario config. key = {}, val = {}", key, val);
-        }else{
+        } else {
             Log.debug("Var value not found for key = {}", key);
         }
         return val;
@@ -79,20 +81,12 @@ public abstract class Step {
         this.getContext().getVars().put(key, value);
     }
 
-    public String log(String message) {
-        String fm = "";
-        if(StringUtils.isNotBlank(context.getInputs().getName())) {
-            fm += "[" + context.getInputs().getName() + "] ";
-        }
-        return fm + "[" + this.spec.getName() + "] -- " + message;
-    }
-
     public abstract boolean isDone();
 
     public abstract String getStepVariables(String key);
 
     private Hook getHook(String hookRef) {
-        if(hookRef == null) {
+        if (hookRef == null) {
             return null;
         }
         Log.debug("Initialize hook = {}", hookRef);
@@ -107,12 +101,26 @@ public abstract class Step {
         }
 
         // Initialize a new instance of the class
+    }
 
+    public String getPrompt(String key) {
+        if (key == null) {
+            return null;
+        }
+        if (!key.startsWith("prompt ")) {
+            return null;
+        }
+        String text = key.replace("prompt ", "");
+        String name = JOptionPane.showInputDialog(null, text, this.spec.getName(), JOptionPane.QUESTION_MESSAGE);
+        return name;
     }
 
     public abstract boolean isPassed();
+
     public abstract long getTime();
+
     public abstract List<AssertResult> getAssertsResults();
+
     public abstract String getAdditionalDetails();
 
 

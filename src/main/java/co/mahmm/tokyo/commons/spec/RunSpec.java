@@ -10,7 +10,8 @@ import java.util.List;
 @Builder
 
 public class RunSpec {
-    private String scenarioSpec;
+    private String scenarioSpecFile;
+    private String inputFile;
     private List<String> configFiles = new ArrayList<>();
     private ReportSpec reportSpec = new ReportSpec();
 

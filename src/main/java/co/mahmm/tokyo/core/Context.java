@@ -12,11 +12,11 @@ import java.util.Map;
 @Getter
 @Setter
 public class Context {
-    private Map<String, String> vars = new HashMap<>();
+    private Map<String, Object> vars = new HashMap<>();
     private List<Step> steps = new ArrayList<>();
-    private Map<String, String> configs = new HashMap<>();
+    private Map<String, Object> configs = new HashMap<>();
     private DataSpec inputs = new DataSpec();
-    public Map<String, String> getInputData() {
+    public Map<String, Object> getInputData() {
         return inputs.getData();
     }
 

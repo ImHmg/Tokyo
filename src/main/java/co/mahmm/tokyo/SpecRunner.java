@@ -7,29 +7,24 @@ import co.mahmm.tokyo.commons.spec.DataSpec;
 import co.mahmm.tokyo.commons.spec.RunSpec;
 import co.mahmm.tokyo.commons.spec.ScenarioSpec;
 import co.mahmm.tokyo.core.Scenario;
+import com.opencsv.CSVReader;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.DynamicContainer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.StringReader;
+import java.util.*;
 import java.util.stream.Stream;
 
 @Getter
 @Setter
 public class SpecRunner {
-
-    private String specFilePath;
-    private List<String> configFiles;
     private ScenarioSpec spec;
     private RunSpec runSpec;
     private Scenario scenario;
 
     public SpecRunner(RunSpec runSpec) {
-        this.specFilePath = runSpec.getScenarioSpec();
-        this.configFiles = runSpec.getConfigFiles();
+
         this.runSpec = runSpec;
         this.parseFiles();
     }
@@ -49,20 +44,68 @@ public class SpecRunner {
 
 
     private void parseFiles() {
-        Log.debug("Parse scenario file = {}", this.specFilePath);
-        String content = FileReader.readFile(this.specFilePath);
+        Log.debug("Parse scenario file = {}", this.runSpec.getScenarioSpecFile());
+        String content = FileReader.readFile(this.runSpec.getScenarioSpecFile());
         this.spec = YamlParser.parse(content, ScenarioSpec.class);
-        Map<String, String> configs = new HashMap<>();
+        Map<String, Object> configs = new HashMap<>();
         configs.putAll(this.spec.getConfigs());
-        if(this.configFiles != null) {
-            for (String configFile : this.configFiles) {
+        if(this.runSpec.getConfigFiles() != null) {
+            for (String configFile : this.runSpec.getConfigFiles()) {
                 Log.debug("Parse config file = {}", configFile);
-                Map<String, String> env = YamlParser.parse(FileReader.readFile(configFile), Map.class);
+                Map<String, Object> env = YamlParser.parse(FileReader.readFile(configFile), Map.class);
                 configs.putAll(env);
             }
         }
+        parseInputFile();
         Log.debug("All loaded config for scenario = {}", configs);
         this.spec.setConfigs(configs);
+    }
+
+    private void parseInputFile() {
+        if(this.runSpec.getInputFile() == null) {
+            return;
+        }
+        try {
+            CSVReader reader = new CSVReader(new StringReader(FileReader.readFile(this.runSpec.getInputFile())));
+            List<String[]> lines = reader.readAll();
+            if(lines.size() <= 1) {
+                throw new RuntimeException("Input files must have rows");
+            }
+            String[] header = lines.get(0);
+            if(header.length == 0) {
+                throw new RuntimeException("Input files invalid header, header should be in #Name#,col1,col2,col3....");
+            }
+            if(!Objects.equals(header[0], "#Name#")) {
+                throw new RuntimeException("Input files invalid header, header should be in #Name#,col1,col2,col3....");
+            }
+            Map<Integer, String> format = new HashMap<>();
+            for (int i = 0; i < header.length; i++) {
+                format.put(i, header[i]);
+            }
+            List<DataSpec> inputs = new ArrayList<>();
+            for (int i = 1; i < lines.size(); i++) {
+                if(lines.get(i).length != format.size()) {
+                    throw new RuntimeException("Input files invalid row (column count doesnt match) " + i);
+                }
+                DataSpec dataSpec = new DataSpec();
+                dataSpec.setName(lines.get(i)[0]);
+                Map<String, Object> data = new HashMap<>();
+                for (Map.Entry<Integer, String> entry : format.entrySet()) {
+                    if(Objects.equals(entry.getValue(), "#Name#")) {
+                        continue;
+                    }
+                    data.put(entry.getValue(), lines.get(i)[entry.getKey()]);
+                }
+                dataSpec.setData(data);
+                inputs.add(dataSpec);
+            }
+            this.spec.setInputs(inputs);
+        }catch (Exception e) {
+
+            throw new RuntimeException("Error while parsing input file", e);
+        }
+    }
+    public void validateFiles() {
 
     }
 }

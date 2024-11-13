@@ -91,6 +91,11 @@ public class HttpRequestStep extends Step {
         }
         for (String key : variables) {
             String value = TokyoFaker.get(key);
+
+            if(value == null) {
+                value = getPrompt(key);
+            }
+
             if (value == null) {
                 value = getVar(key);
             }
@@ -553,7 +558,7 @@ public class HttpRequestStep extends Step {
         StringBuilder content = new StringBuilder();
         content.append("<pre><b><u>Request</u></b>").append("<br><br>").append(request.toString()).append("<br><br>");
         content.append("<b><u>Response</u></b>").append("<br><br>").append(response.toString()).append("<br><br>");
-        content.append("<b><u>cURL</u></b>").append("<br><br><i><small>").append(generateCurlCommand()).append("<small></i><br><br></pre>");
+        content.append("</pre>");
         return content.toString();
     }
 

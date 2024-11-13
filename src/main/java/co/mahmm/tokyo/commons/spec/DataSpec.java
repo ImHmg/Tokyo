@@ -12,5 +12,5 @@ public class DataSpec {
     private String id;
     private String name;
     private String description;
-    private Map<String, String> data = new HashMap<>();
+    private Map<String, Object> data = new HashMap<>();
 }

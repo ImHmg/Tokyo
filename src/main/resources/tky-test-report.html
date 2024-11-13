@@ -97,7 +97,7 @@
         <div v-for="(section, index) in reportData.sections" :key="section.title" v-if="(filterOps == '1' && section.status) || (filterOps == '2' && !section.status) || filterOps == '0'">
             <div class="accordion-item">
                 <h2 class="accordion-header" :id="'heading' + index">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#collapse' + index" aria-expanded="false" :aria-controls="'collapse' + index">
+                    <button class="accordion-button collapsed" type="button" style="background: #ecf0f1" data-bs-toggle="collapse" :data-bs-target="'#collapse' + index" aria-expanded="false" :aria-controls="'collapse' + index">
                        <span :class="section.status ? 'badge bg-green' : 'badge bg-red'" align="center">
                                     <b>{{ section.status ? '✓ Passed' : '✗ Failed' }}</b>
                                 </span> &nbsp; &nbsp; <b>{{ section.title }}</b>
@@ -134,22 +134,26 @@
 
                 </div>
                 <div class="modal-body"  v-if="stepContent != null">
-                    <table v-if="stepContent != null" class="table table-bordered">
-                        <tr>
-                            <th style="width: 25px">#</th>
-                            <th>Description</th>
-                            <th>Expected</th>
-                            <th>Actual</th>
-                        </tr>
+                    <table v-if="stepContent != null" class="table table-bordered" style="border-color: #7f8c8d">
                         <tr v-for="assertion in stepContent.asserts" :key="assertion.name">
-                            <td>
-                                <span :class="assertion.status ? 'badge  bg-green' : 'badge bg-red'">
+                            <td style="word-break: break-all">
+                                 <span :class="assertion.status ? 'badge  bg-green' : 'badge bg-red'">
                                     {{ assertion.status ? '✓' : '✗' }}
                                 </span>
+                                <b>{{ assertion.name }}</b>
+                                <div v-if="assertion.expected" class=" mt-2">
+                                    <table class="table table-bordered" style="font-size: 0.75em">
+                                        <tr>
+                                            <td style="width: 100px"><i><b>Expected</b></i></td>
+                                            <td><i>{{assertion.expected}}</i></td>
+                                        </tr>
+                                        <tr>
+                                            <td><i><b>Actual</b></i></td>
+                                            <td><i>{{assertion.actual}}</i></td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </td>
-                            <td>{{ assertion.name }}</td>
-                            <td>{{assertion.expected}}</td>
-                            <td>{{assertion.actual}}</td>
                         </tr>
                     </table>
                 </div>
