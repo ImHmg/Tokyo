@@ -11,10 +11,10 @@ rawBody: |
     "password": "securepassword123"
   }
 asserts:
-  "id not null" : "@body json:$.id"
+  "id not null" : "@body json $.id"
   "username not null" : "@body json:$.username"
 
 captures:
-  "userId" : "@body json:$.id"
-  "username" : "@body json:$.username"
+  "userId" : "@body json $.id"
+  "username" : "@body json $.username"
   "token" : "@header authorization"

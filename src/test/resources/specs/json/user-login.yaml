@@ -10,7 +10,7 @@ rawBody: |
     "password": "securepassword123"
   }
 asserts:
-  "expected token" : "@body json:$.token [==] test token"
+  "expected token" : "@body json $.token [==] test token"
 
 captures:
-  "loginToken" : "@body json:$.token"
+  "loginToken" : "@body json $.token"

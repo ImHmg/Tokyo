@@ -414,13 +414,13 @@ public class HttpRequestStep extends Step {
         input = input.replaceFirst("@body ", "");
         if (StringUtils.startsWith(input, "raw")) {
             result.put("type", "raw");
-            input = input.replaceFirst("raw", "");
-        } else if (StringUtils.startsWith(input, "json:")) {
+            input = input.replaceFirst("raw ", "");
+        } else if (StringUtils.startsWith(input, "json ")) {
             result.put("type", "json");
-            input = input.replaceFirst("json:", "");
-        } else if (StringUtils.startsWith(input, "xml:")) {
+            input = input.replaceFirst("json ", "");
+        } else if (StringUtils.startsWith(input, "xml ")) {
             result.put("type", "xml");
-            input = input.replaceFirst("xml:", "");
+            input = input.replaceFirst("xml ", "");
         }
 
         if (input.startsWith(" ")) {

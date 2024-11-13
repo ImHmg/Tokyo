@@ -17,9 +17,9 @@ rawBody: |
     "stock": ${faker regexify '[0-9]{3}'}
   }
 asserts:
-  "id not null" : "@body json:$.id [==] 67448a7-d499-4c7e-8638-819b9c318aca"
-  "name not null" : "@body json:$.name"
-  "status is 201" : "@status [==] 200"
+  "id not null" : "@body json $.id [==] 67448a7-d499-4c7e-8638-819b9c318aca"
+  "name not null" : "@body json $.name"
+  "status is 201" : "@status [==] ${assertSyn}"
 
 captures:
-  "productId" : "@body json:$.id"
+  "productId" : "@body json $.id"
