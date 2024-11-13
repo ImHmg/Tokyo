@@ -93,43 +93,40 @@
         </select>
     </div>
 
-    <div v-for="section in reportData.sections" :key="section.title" class="p-2 mb-4" v-if="(filterOps == '1' && section.status) || (filterOps == '2' && !section.status) || filterOps == '0'">
-        <h5 class="mb-3">
-            <span :class="section.status ? 'badge bg-green' : 'badge bg-red'" align="center">
-                <b>{{ section.status ? '✓' : '✗' }}</b>
-            </span>
-            <b>&nbsp;{{ section.title }}</b></h5>
-        <table class="table table-bordered">
-            <tr>
-                <th style="width: 400px;">Step Name</th>
-                <th style="width: 100px;">Status</th>
-                <th>Assertions</th>
-                <th style="width: 100px;">Details</th>
-            </tr>
-            <tr v-for="step in section.steps" :key="step.name" v-if="(filterOps == '1' && step.status) || (filterOps == '2' && !step.status) || filterOps == '0'">
-                <td>{{ step.name }}</td>
-                <td :class="step.status ? 'bg-green' : 'bg-red'" align="center">
-                    <b>{{ step.status ? '✓ Passed' : '✗ Failed' }}</b>
-                </td>
-                <td>
-                    <ul>
-                        <li v-for="assertion in step.asserts" :key="assertion.name">
-                            <span :class="assertion.status ? 'badge  bg-green' : 'badge bg-red'">
-                                {{ assertion.status ? '✓' : '✗' }}
-                            </span>
-                            {{ assertion.name }}
-                        </li>
-                    </ul>
-                </td>
-                <td class="details">
-                    <div class="d-grid gap-2 mx-auto">
-                        <button class="btn btn-xs btn-outline-secondary" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;" data-bs-toggle="modal" data-bs-target="#exampleModal" @click="openDetails(step.details)">Details</button>
-                        <button class="btn btn-sm btn-outline-secondary" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .75rem;" v-if="!section.status"data-bs-toggle="modal" data-bs-target="#exampleModal" @click="openAsserts(step)">Assertions</button>
+    <div class="accordion mb-5" id="reportAccordion">
+        <div v-for="(section, index) in reportData.sections" :key="section.title" v-if="(filterOps == '1' && section.status) || (filterOps == '2' && !section.status) || filterOps == '0'">
+            <div class="accordion-item">
+                <h2 class="accordion-header" :id="'heading' + index">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="'#collapse' + index" aria-expanded="false" :aria-controls="'collapse' + index">
+                       <span :class="section.status ? 'badge bg-green' : 'badge bg-red'" align="center">
+                                    <b>{{ section.status ? '✓ Passed' : '✗ Failed' }}</b>
+                                </span> &nbsp; &nbsp; <b>{{ section.title }}</b>
+                    </button>
+                </h2>
+                <div :id="'collapse' + index" class="accordion-collapse collapse" :aria-labelledby="'heading' + index" data-bs-parent="#reportAccordion">
+                    <div class="accordion-body">
+                        <table class="table table-bordered">
+                            <tr v-for="step in section.steps" :key="step.name" v-if="(filterOps == '1' && step.status) || (filterOps == '2' && !step.status) || filterOps == '0'">
+                                <td align="center" style="width: 100px;">
+                                <span :class="section.status ? 'badge bg-green' : 'badge bg-red'" align="center">
+                                    <b>{{ step.status ? '✓ Passed' : '✗ Failed' }}</b>
+                                </span>
+                                </td>
+                                <td>{{ step.name }}</td>
+                                <td class="details" style="width: 100px;">
+                                    <div class="mx-auto" style="display: flex">
+                                        <button class="btn btn-xs btn-outline-secondary" style="--bs-btn-padding-y: .2rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .7rem;" data-bs-toggle="modal" data-bs-target="#exampleModal" @click="openDetails(step.details)">Details</button>
+                                        <button class="btn btn-sm btn-outline-secondary" style="--bs-btn-padding-y: .25rem; --bs-btn-padding-x: .5rem; --bs-btn-font-size: .7rem; margin-left: 10px" v-if="!section.status" data-bs-toggle="modal" data-bs-target="#exampleModal" @click="openAsserts(step)">Assertions</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
                     </div>
-                </td>
-            </tr>
-        </table>
+                </div>
+            </div>
+        </div>
     </div>
+
     <div class="modal fade modal-lg" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">

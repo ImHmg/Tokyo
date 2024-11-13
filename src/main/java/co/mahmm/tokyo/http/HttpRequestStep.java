@@ -323,7 +323,8 @@ public class HttpRequestStep extends Step {
                     Assertions.assertFalse(StringUtils.contains(actual, expected), key);
                 } else if ("[<...>]".equals(operator)) {
                     // TODO Impletement between
-                    Assertions.assertTrue(StringUtils.contains(actual, expected), key);
+                    throw new UnsupportedOperationException("range compare implemented yet");
+//                    Assertions.assertTrue(StringUtils.contains(actual, expected), key);
                 }
                 assertResults.add(new AssertResult(key, true, expected, actual));
             } catch (AssertionFailedError ex) {
@@ -362,6 +363,7 @@ public class HttpRequestStep extends Step {
             } else if (type.equals("xml")) {
 //            return response.xmlPath().getString(expression);
                 // TODO : implement xml path and regex
+                throw new UnsupportedOperationException("xml path not implemented yet");
             } else if (type.equals("raw")) {
                 return response;
             }
