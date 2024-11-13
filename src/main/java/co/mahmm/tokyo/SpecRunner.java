@@ -6,10 +6,12 @@ import co.mahmm.tokyo.commons.YamlParser;
 import co.mahmm.tokyo.commons.spec.DataSpec;
 import co.mahmm.tokyo.commons.spec.RunSpec;
 import co.mahmm.tokyo.commons.spec.ScenarioSpec;
+import co.mahmm.tokyo.commons.spec.StepSpec;
 import co.mahmm.tokyo.core.Scenario;
 import com.opencsv.CSVReader;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DynamicContainer;
 
 import java.io.StringReader;
@@ -27,6 +29,7 @@ public class SpecRunner {
 
         this.runSpec = runSpec;
         this.parseFiles();
+        this.validateFiles();
     }
 
     public Stream<DynamicContainer> run() {
@@ -105,7 +108,71 @@ public class SpecRunner {
             throw new RuntimeException("Error while parsing input file", e);
         }
     }
-    public void validateFiles() {
+    private void validateFiles() {
+        Map<String, String> inputs = new HashMap<>();
+        if(this.getSpec().getInputs() != null) {
+            for (DataSpec input : this.getSpec().getInputs()) {
+                if(inputs.containsKey(input.getName())) {
+                    throw new IllegalArgumentException("Input name cannot be duplicate. Duplicate input name " + input.getName());
+                }
+                inputs.put(input.getName(), input.getName());
+            }
+        }
+        Map<String, String> stepIds = new HashMap<>();
+        Map<String, String> stepNames = new HashMap<>();
+
+        for (StepSpec step : this.getSpec().getPreSteps()) {
+            if(stepIds.containsKey(step.getId())) {
+                throw new IllegalArgumentException("Step id cannot be duplicated. Duplicate step id " + step.getId());
+            }
+            stepIds.put(step.getId(), step.getId());
+
+            if(stepNames.containsKey(step.getName())) {
+                throw new IllegalArgumentException("Step name cannot be duplicated. Duplicate step name " + step.getName());
+            }
+            stepNames.put(step.getName(), step.getName());
+            validateStep(step);
+        }
+        for (StepSpec step : this.getSpec().getSteps()) {
+            if(stepIds.containsKey(step.getId())) {
+                throw new IllegalArgumentException("Step id cannot be duplicated. Duplicate step id " + step.getId());
+            }
+            stepIds.put(step.getId(), step.getId());
+
+            if(stepNames.containsKey(step.getName())) {
+                throw new IllegalArgumentException("Step name cannot be duplicated. Duplicate step name " + step.getName());
+            }
+            stepNames.put(step.getName(), step.getName());
+            validateStep(step);
+        }
+        for (StepSpec step : this.getSpec().getPostSteps()) {
+            if(stepIds.containsKey(step.getId())) {
+                throw new IllegalArgumentException("Step id cannot be duplicated. Duplicate step id " + step.getId());
+            }
+            stepIds.put(step.getId(), step.getId());
+
+            if(stepNames.containsKey(step.getName())) {
+                throw new IllegalArgumentException("Step name cannot be duplicated. Duplicate step name " + step.getName());
+            }
+            stepNames.put(step.getName(), step.getName());
+            validateStep(step);
+        }
+    }
+
+    private void validateStep(StepSpec stepSpec) {
+        if(StringUtils.isEmpty(stepSpec.getId())) {
+            throw new IllegalArgumentException("Step id cannot be null");
+        }
+
+        if(StringUtils.isEmpty(stepSpec.getName())) {
+            throw new IllegalArgumentException("Step name cannot be null");
+        }
+
+        if(StringUtils.isEmpty(stepSpec.getRef())) {
+            throw new IllegalArgumentException("Step ref cannot be null");
+        }
 
     }
+
+
 }

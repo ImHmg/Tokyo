@@ -9,8 +9,8 @@ preSteps:
     name: User login
     ref: specs/json/user-login.yaml
 postSteps:
-  - id: registration
-    name: User registration
+  - id: registration 2
+    name: User registration 2
     ref: specs/json/user-registration.yaml
     configs:
       username: "${prompt Enter name please ?}"
