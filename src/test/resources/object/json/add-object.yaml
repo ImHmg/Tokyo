@@ -1,8 +1,5 @@
 Name: Add Object
 
-Define:
-  server: ${faker regexify '[a-z]{10}'}
-
 Method: POST
 Endpoint: ${server}/objects
 Status: 200
