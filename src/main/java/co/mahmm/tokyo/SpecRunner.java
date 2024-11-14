@@ -1,5 +1,6 @@
 package co.mahmm.tokyo;
 
+import co.mahmm.tokyo.commons.ContentParser;
 import co.mahmm.tokyo.commons.FileReader;
 import co.mahmm.tokyo.commons.Log;
 import co.mahmm.tokyo.commons.YamlParser;
@@ -59,9 +60,10 @@ public class SpecRunner {
                 configs.putAll(env);
             }
         }
-        parseInputFile();
+        configs.putAll(this.runSpec.getConfigs());
         Log.debug("All loaded config for scenario = {}", configs);
         this.spec.setConfigs(configs);
+        parseInputFile();
     }
 
     private void parseInputFile() {
@@ -97,7 +99,9 @@ public class SpecRunner {
                     if(Objects.equals(entry.getValue(), "#Name#")) {
                         continue;
                     }
-                    data.put(entry.getValue(), lines.get(i)[entry.getKey()]);
+                    String inputValue = lines.get(i)[entry.getKey()];
+                    inputValue = ContentParser.replaceVariables(inputValue,this::getVariables);
+                    data.put(entry.getValue(), inputValue) ;
                 }
                 dataSpec.setData(data);
                 inputs.add(dataSpec);
@@ -172,6 +176,13 @@ public class SpecRunner {
             throw new IllegalArgumentException("Step ref cannot be null");
         }
 
+    }
+
+    private String getVariables(String key) {
+        if(this.spec.getConfigs().containsKey(key)) {
+            return String.valueOf(this.spec.getConfigs().get(key));
+        }
+        return null;
     }
 
 

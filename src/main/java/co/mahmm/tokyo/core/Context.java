@@ -28,7 +28,7 @@ public class Context {
         String[] split = key.split("\\.");
 
         for (Step step : steps) {
-            if(step.isDone() && step.getSpec().getId().equals(split[0])) {
+            if(step.isExecutionSuccess() && step.getSpec().getId().equals(split[0])) {
                 return step.getStepVariables(key);
             }
         }

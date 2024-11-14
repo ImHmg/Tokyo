@@ -1,7 +1,7 @@
-name: Delete Object
-method: DELETE
-endpoint: ${server}/objects/${id}
-status: 200
+Name: Delete Object
+Method: DELETE
+Endpoint: ${server}/objects/${id}
+Status: 200
 
-asserts:
+Asserts:
   "message not null" : "@body json $.message"

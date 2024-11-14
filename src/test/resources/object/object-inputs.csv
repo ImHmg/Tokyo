@@ -1,11 +1,11 @@
 #Name#,name,year,model,size
-TestScenario_PC1,PC-Alpha,2020,Intel i5,512GB
-TestScenario_PC2,PC-Beta,2021,AMD Ryzen 5,1TB
-TestScenario_PC3,PC-Gamma,2022,Intel i7,256GB
-TestScenario_PC4,PC-Delta,2019,AMD Ryzen 7,2TB
-TestScenario_PC5,PC-Epsilon,2018,Intel i9,1TB
-TestScenario_PC6,PC-Zeta,2023,AMD Ryzen 9,512GB
-TestScenario_PC7,PC-Eta,2020,Intel Xeon,1TB
-TestScenario_PC8,PC-Theta,2021,Apple M1,2TB
-TestScenario_PC9,PC-Iota,2022,AMD Threadripper,128GB
-TestScenario_PC10,PC-Kappa,2023,Intel i3,512GB
+TestScenario_PC1,PC-Alpha,2020,Intel i5,${faker regexify '[0-9]{3}'}GB
+TestScenario_PC2,PC-Beta,2021,AMD Ryzen 5,${faker regexify '[0-9]{3}'}GB
+TestScenario_PC3,PC-Gamma,2022,Intel i7,${faker regexify '[0-9]{3}'}GB
+TestScenario_PC4,PC-Delta,2019,AMD Ryzen 7,${faker regexify '[0-9]{3}'}GB
+TestScenario_PC5,PC-Epsilon,2018,Intel i9,${faker regexify '[0-9]{3}'}GB
+TestScenario_PC6,PC-Zeta,2023,AMD Ryzen 9,${faker regexify '[0-9]{3}'}GB
+TestScenario_PC7,PC-Eta,2020,Intel Xeon,${faker regexify '[0-9]{3}'}GB
+TestScenario_PC8,PC-Theta,2021,Apple M1,${faker regexify '[0-9]{3}'}GB
+TestScenario_PC9,PC-Iota,2022,AMD Threadripper,${faker regexify '[0-9]{3}'}GB
+TestScenario_PC10,PC-Kappa,2023,Intel i3,${faker regexify '[0-9]{3}'}GB

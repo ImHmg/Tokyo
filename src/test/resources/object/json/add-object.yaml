@@ -1,10 +1,15 @@
-name: Add Object
-method: POST
-endpoint: ${server}/objects
-status: 200
-headers:
+Name: Add Object
+
+Define:
+  server: ${faker regexify '[a-z]{10}'}
+
+Method: POST
+Endpoint: ${server}/objects
+Status: 200
+Headers:
   Content-Type: application/json
-rawBody: |
+
+RawBody: |
   {
     "name": "${name}",
     "data": {
@@ -14,9 +19,10 @@ rawBody: |
       "Hard disk size": "${size}"
     }
   }
-asserts:
+Asserts:
   "id not null" : "@body json $.id"
 
-captures:
+Captures:
   "id" : "@body json $.id"
   "price" : "@body json $.data.price"
+  "size" : "@body json $.data['Hard disk size']"

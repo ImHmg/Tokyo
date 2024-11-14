@@ -1,15 +1,15 @@
-name: Get Object
-method: GET
-endpoint: ${server}/objects/${id}
-status: 200
-headers:
+Name: Get Object
+Method: GET
+Endpoint: ${server}/objects/${id}
+Status: 200
+Headers:
   Content-Type: application/json
 
-asserts:
+Asserts:
   "name equals to ${name}" : "@body json $.name [==] ${name}"
   "year equals to ${year}" : "@body json $.data.year [==] ${year}"
   "price equals to ${price}" : "@body json $.data.price [==] ${price}"
   "model equals to ${model}" : "@body json $.data['CPU model'] [==] ${model}"
 
-captures:
+Captures:
   "id" : "@body json $.id"

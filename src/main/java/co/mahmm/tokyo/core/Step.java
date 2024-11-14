@@ -81,7 +81,7 @@ public abstract class Step {
         this.getContext().getVars().put(key, value);
     }
 
-    public abstract boolean isDone();
+    public abstract boolean isExecutionSuccess();
 
     public abstract String getStepVariables(String key);
 
@@ -103,17 +103,6 @@ public abstract class Step {
         // Initialize a new instance of the class
     }
 
-    public String getPrompt(String key) {
-        if (key == null) {
-            return null;
-        }
-        if (!key.startsWith("prompt ")) {
-            return null;
-        }
-        String text = key.replace("prompt ", "");
-        String name = JOptionPane.showInputDialog(null, text, this.spec.getName(), JOptionPane.QUESTION_MESSAGE);
-        return name;
-    }
 
     public abstract boolean isPassed();
 
