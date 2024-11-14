@@ -1,7 +1,7 @@
-package co.mahmm.tokyo.commons;
+package io.github.imhmg.tokyo.commons;
 
-import co.mahmm.tokyo.SpecRunner;
-import co.mahmm.tokyo.core.Step;
+import io.github.imhmg.tokyo.SpecRunner;
+import io.github.imhmg.tokyo.core.Step;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 

@@ -1,7 +1,7 @@
-package co.mahmm.tokyo;
+package io.github.imhmg.tokyo;
 
-import co.mahmm.tokyo.commons.ReportGenerator;
-import co.mahmm.tokyo.commons.spec.RunSpec;
+import io.github.imhmg.tokyo.commons.ReportGenerator;
+import io.github.imhmg.tokyo.commons.spec.RunSpec;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.TestFactory;

@@ -1,11 +1,11 @@
-package co.mahmm.tokyo.core;
+package io.github.imhmg.tokyo.core;
 
-import co.mahmm.tokyo.commons.Console;
-import co.mahmm.tokyo.commons.Log;
-import co.mahmm.tokyo.commons.spec.DataSpec;
-import co.mahmm.tokyo.commons.spec.ScenarioSpec;
-import co.mahmm.tokyo.commons.spec.StepSpec;
-import co.mahmm.tokyo.http.HttpRequestStep;
+import io.github.imhmg.tokyo.commons.Console;
+import io.github.imhmg.tokyo.commons.Log;
+import io.github.imhmg.tokyo.commons.spec.DataSpec;
+import io.github.imhmg.tokyo.commons.spec.ScenarioSpec;
+import io.github.imhmg.tokyo.commons.spec.StepSpec;
+import io.github.imhmg.tokyo.http.HttpRequestStep;
 import lombok.Getter;
 import lombok.Setter;
 import org.junit.jupiter.api.DynamicContainer;

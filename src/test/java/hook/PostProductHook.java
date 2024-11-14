@@ -1,9 +1,7 @@
 package hook;
 
-import co.mahmm.tokyo.core.Hook;
-import co.mahmm.tokyo.core.Step;
-
-import java.util.Scanner;
+import io.github.imhmg.tokyo.core.Hook;
+import io.github.imhmg.tokyo.core.Step;
 
 public class PostProductHook implements Hook {
 

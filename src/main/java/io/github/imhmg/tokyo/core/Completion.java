@@ -1,4 +1,4 @@
-package co.mahmm.tokyo.core;
+package io.github.imhmg.tokyo.core;
 
 @FunctionalInterface
 public interface Completion {

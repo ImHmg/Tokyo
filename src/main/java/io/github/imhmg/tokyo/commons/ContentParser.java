@@ -1,6 +1,6 @@
-package co.mahmm.tokyo.commons;
+package io.github.imhmg.tokyo.commons;
 
-import co.mahmm.tokyo.core.TokyoFaker;
+import io.github.imhmg.tokyo.core.TokyoFaker;
 
 import javax.swing.*;
 import java.util.ArrayList;

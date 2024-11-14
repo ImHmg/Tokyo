@@ -1,14 +1,14 @@
-package co.mahmm.tokyo;
+package io.github.imhmg.tokyo;
 
-import co.mahmm.tokyo.commons.ContentParser;
-import co.mahmm.tokyo.commons.FileReader;
-import co.mahmm.tokyo.commons.Log;
-import co.mahmm.tokyo.commons.YamlParser;
-import co.mahmm.tokyo.commons.spec.DataSpec;
-import co.mahmm.tokyo.commons.spec.RunSpec;
-import co.mahmm.tokyo.commons.spec.ScenarioSpec;
-import co.mahmm.tokyo.commons.spec.StepSpec;
-import co.mahmm.tokyo.core.Scenario;
+import io.github.imhmg.tokyo.commons.ContentParser;
+import io.github.imhmg.tokyo.commons.FileReader;
+import io.github.imhmg.tokyo.commons.Log;
+import io.github.imhmg.tokyo.commons.YamlParser;
+import io.github.imhmg.tokyo.commons.spec.DataSpec;
+import io.github.imhmg.tokyo.commons.spec.RunSpec;
+import io.github.imhmg.tokyo.commons.spec.ScenarioSpec;
+import io.github.imhmg.tokyo.commons.spec.StepSpec;
+import io.github.imhmg.tokyo.core.Scenario;
 import com.opencsv.CSVReader;
 import lombok.Getter;
 import lombok.Setter;

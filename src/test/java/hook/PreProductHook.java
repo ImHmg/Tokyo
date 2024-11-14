@@ -1,10 +1,7 @@
 package hook;
 
-import co.mahmm.tokyo.core.Hook;
-import co.mahmm.tokyo.core.Step;
-
-import javax.swing.*;
-import java.util.Scanner;
+import io.github.imhmg.tokyo.core.Hook;
+import io.github.imhmg.tokyo.core.Step;
 
 public class PreProductHook implements Hook {
 

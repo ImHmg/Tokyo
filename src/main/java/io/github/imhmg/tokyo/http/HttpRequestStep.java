@@ -1,10 +1,10 @@
-package co.mahmm.tokyo.http;
+package io.github.imhmg.tokyo.http;
 
-import co.mahmm.tokyo.commons.*;
-import co.mahmm.tokyo.commons.spec.StepSpec;
-import co.mahmm.tokyo.core.Context;
-import co.mahmm.tokyo.core.Step;
+import io.github.imhmg.tokyo.commons.spec.StepSpec;
+import io.github.imhmg.tokyo.core.Context;
+import io.github.imhmg.tokyo.core.Step;
 import com.jayway.jsonpath.JsonPath;
+import io.github.imhmg.tokyo.commons.*;
 import io.restassured.RestAssured;
 import io.restassured.http.Header;
 import io.restassured.response.ExtractableResponse;

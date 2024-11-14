@@ -1,6 +1,6 @@
-package co.mahmm.tokyo.core;
+package io.github.imhmg.tokyo.core;
 
-import co.mahmm.tokyo.commons.Log;
+import io.github.imhmg.tokyo.commons.Log;
 import net.datafaker.Faker;
 
 public class TokyoFaker {

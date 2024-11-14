@@ -1,4 +1,4 @@
-package co.mahmm.tokyo.commons;
+package io.github.imhmg.tokyo.commons;
 
 import org.apache.commons.io.FileUtils;
 

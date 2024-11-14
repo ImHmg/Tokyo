@@ -1,14 +1,12 @@
-package co.mahmm.tokyo.core;
+package io.github.imhmg.tokyo.core;
 
-import co.mahmm.tokyo.commons.AssertResult;
-import co.mahmm.tokyo.commons.Console;
-import co.mahmm.tokyo.commons.Log;
-import co.mahmm.tokyo.commons.spec.StepSpec;
+import io.github.imhmg.tokyo.commons.AssertResult;
+import io.github.imhmg.tokyo.commons.Console;
+import io.github.imhmg.tokyo.commons.Log;
+import io.github.imhmg.tokyo.commons.spec.StepSpec;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
 import java.util.List;
 
 import static com.diogonunes.jcolor.Ansi.*;

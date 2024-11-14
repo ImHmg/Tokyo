@@ -1,8 +1,7 @@
-package co.mahmm.tokyo.commons.spec;
+package io.github.imhmg.tokyo.commons.spec;
 
-import co.mahmm.tokyo.core.Completion;
+import io.github.imhmg.tokyo.core.Completion;
 import lombok.*;
-import org.junit.jupiter.api.function.Executable;
 
 @Getter
 @Setter

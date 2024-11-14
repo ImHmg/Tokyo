@@ -1,4 +1,4 @@
-package co.mahmm.tokyo.commons;
+package io.github.imhmg.tokyo.commons;
 
 import java.util.HashMap;
 import java.util.Map;

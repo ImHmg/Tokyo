@@ -1,4 +1,4 @@
-package co.mahmm.tokyo.commons;
+package io.github.imhmg.tokyo.commons;
 
 public class Console {
     public static void print(String...text) {
