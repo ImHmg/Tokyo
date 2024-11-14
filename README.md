@@ -82,25 +82,22 @@ You can run the tests either via Gradle or directly in IntelliJ.
 
 ## Table of Contents
 
-
 1. [Introduction](#introduction)
 2. [Request Spec File Format](#request-spec-file-format)
-    1. [Name](#Name)
-    2. [Method](#Method)
-    3. [Endpoint](#Endpoint)
-   4. [Status](#Status)
-   4. [Headers](#headers)
-    5. [TextBody](#TextBody)
-    6. [JsonBody](#JsonBody)
-    7. [FormParams](#FormParams)
-   12. [QueryParams](#queryparams)
-    13. [Captures](#captures)
-    14. [Asserts](#asserts)
-     8. [Define](#define)
-     9. [MultipartData](#multipartdata)
-     10. [Options](#options)
-     11. [Headers](#headers)
-
+   1. [Name](#name)
+   2. [Method](#method)
+   3. [Endpoint](#endpoint)
+   4. [Status](#status)
+   5. [Headers](#headers)
+   6. [TextBody](#textbody)
+   7. [JsonBody](#jsonbody)
+   8. [FormParams](#formparams)
+   9. [QueryParams](#queryparams)
+   10. [Captures](#captures)
+   11. [Asserts](#asserts)
+   12. [Define](#define)
+   13. [MultipartData](#multipartdata)
+   14. [Options](#options)
 3. [Example Request Spec File](#example-request-spec-file)
 4. [Using the Request Spec in a Scenario](#using-the-request-spec-in-a-scenario)
 5. [Configuration and Customization](#configuration-and-customization)
@@ -348,19 +345,82 @@ Example:
 
 ### Captures
 
-The **Captures** field specifies the response values to be captured and stored for further use, such as for assertions or use in subsequent requests. These captures are typically used to extract data like tokens, IDs, or other dynamic values from the response.
+The **Captures** field specifies the response values to be captured and stored for further use.
 
 Example:
 
 ```yaml
 Name: Hello World
-Method: GET
+Method: POST
 Endpoint: https://example.com/api/resource
 Status: 200
-QueryParams:
-  search: test
-  limit: 10
+JsonBody: |
+  {
+    "key": "123",
+    "value": "${value}"
+  }
 Captures:
-  userId: $.data.id
-  authToken: $.headers.Authorization
+   "key" : "@body json $.key"
+   "value" : "@body json $.key"
+   "authorization" : "@header authorization"
+```
+#### Capture Syntax
+```@<source> <capture expression>```
 
+Capture syntax is similar to assert syntax but does not include an operator or expected value:
+
+- **Source** specifies where to capture the data, such as `@body`,  `@header` or `@status`.
+- **Capture expression** defines the path or key to retrieve.
+
+Examples:
+
+```yaml
+"key" : "@body json $.key"
+"value" : "@body json $.key"
+"responseBody" : "@body raw"
+"authorization" : "@header authorization"
+"statusCode" : "@status"
+```
+### Define
+
+The **Define** section assigns a variable value that can be used within the current request spec or in subsequent requests throughout the scenario flow.
+
+```yaml
+Name: Hello World
+Define:
+   server: "example.com"
+   key: "${faker regexify '[a-z]{10}'}" # Generate random 10 character string with a - z
+   value: "${faker regexify '[0-9]{3}'}" # Generate random 3 digit numbers
+Method: POST
+Endpoint: https://${server}/api/resource
+Status: 200
+JsonBody: |
+  {
+    "key": "${key"",
+    "value": "${value}"
+  }
+```
+
+### Multipart
+
+The **Multipart** section is intended for handling multipart form data, allowing multiple parts in a single request, such as files or form fields. This feature is currently not yet implemented.
+
+### Options
+
+The **Options** section provides additional configuration settings for customizing request behavior.
+
+#### Example Options
+
+```yaml
+Name: Hello World
+Method: POST
+Endpoint: https://example.com/api/resource
+Status: 200
+JsonBody: |
+  {
+    "key": "123",
+    "value": "${value}"
+  }
+Options:
+  timeout : "5000"          # Timeout in milliseconds
+  insecured : true          # Disable ssl verification
