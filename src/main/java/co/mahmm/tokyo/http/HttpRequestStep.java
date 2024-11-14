@@ -32,6 +32,12 @@ import static com.diogonunes.jcolor.Attribute.*;
 public class HttpRequestStep extends Step {
 
     List<String> availableOperators = List.of("[==]", "[!=]", "[<>]", "[<!>]");
+    Map<String, String> operatorDescription = Map.of(
+            "[==]", "equals",
+            "[!=]", "not equals",
+            "[<>]", "contains",
+            "[<!>]", "not contains"
+    );
     private HttpSpec requestSpec;
     private Optional<ResponseBodyExtractionOptions> responseBody = Optional.empty();
     private Map<String, String> responseHeaders = new HashMap<>();
@@ -92,7 +98,7 @@ public class HttpRequestStep extends Step {
         for (String key : variables) {
             String value = TokyoFaker.get(key);
 
-            if(value == null) {
+            if (value == null) {
                 value = getPrompt(key);
             }
 
@@ -150,7 +156,7 @@ public class HttpRequestStep extends Step {
         RequestSpecification request = RestAssured.given();
         request = setRequestOptions(request);
         Log.debug("HTTP request, method: {}, url: {}", this.requestSpec.getMethod(), this.requestSpec.getEndpoint());
-        Console.print(colorize(" Request ", BACK_COLOR(25, 217, 156), BLACK_TEXT(), BOLD()), colorize(" " + this.requestSpec.getMethod() + " ", BLACK_TEXT(), YELLOW_BACK(), BOLD()), " ", colorize(this.requestSpec.getEndpoint(), BLUE_TEXT()));
+        Console.print(colorize(" Request ", BACK_COLOR(90, 124, 255), BLACK_TEXT(), BOLD()), colorize(" " + this.requestSpec.getMethod() + " ", BLACK_TEXT(), YELLOW_BACK(), BOLD()), " ", colorize(this.requestSpec.getEndpoint(), BLUE_TEXT()));
         Console.print("");
         if (this.requestSpec.getQueryParams() != null && !this.requestSpec.getQueryParams().isEmpty()) {
             Console.print(colorize("Request query", MAGENTA_TEXT(), BOLD()));
@@ -206,7 +212,7 @@ public class HttpRequestStep extends Step {
             Log.debug("Response timing: {}ms", time / 1_000_000);
             Log.debug("Response code: {}", res.statusCode());
             Log.debug("Response body: {}", res.body().asString());
-            Console.print(colorize(" Response ", BACK_COLOR(74, 232, 93), BLACK_TEXT(), BOLD()), colorize(" " + this.responseStatusCode + " " + HTTPStatus.httpStatusMap.get(this.responseStatusCode) + " [" + (time / 1_000_000) + " ms] ", BACK_COLOR(85, 85, 85), TEXT_COLOR(255), BOLD()));
+            Console.print(colorize(" Response ", BACK_COLOR(25, 217, 156), BLACK_TEXT(), BOLD()), colorize(" " + this.responseStatusCode + " " + HTTPStatus.httpStatusMap.get(this.responseStatusCode) + " [" + (time / 1_000_000) + " ms] ", BACK_COLOR(85, 85, 85), TEXT_COLOR(255), BOLD()));
             Console.print("");
             Console.print(colorize("Response body", MAGENTA_TEXT(), BOLD()));
             Console.print(colorize(this.responseBody.get().asPrettyString()));
@@ -256,10 +262,13 @@ public class HttpRequestStep extends Step {
             Log.debug("No captures found");
             return;
         }
+        Console.print("\n");
+        Console.print(colorize(" Captures ", BACK_COLOR(90, 124, 255), BLACK_TEXT(), BOLD()));
 
         for (Map.Entry<String, String> e : this.requestSpec.getCaptures().entrySet()) {
             String value = extractResponseValues(e.getValue());
             Log.debug("Capture values, key: {}, value: {}", e.getKey(), value);
+            Console.print(e.getKey()," = ", value);
             setVar(e.getKey(), value);
         }
     }
@@ -267,6 +276,7 @@ public class HttpRequestStep extends Step {
 
     private List<Executable> checkAsserts() {
         Log.debug("Start checking asserts");
+        Console.print(colorize(" Assertions ", BACK_COLOR(90, 124, 255), BLACK_TEXT(), BOLD()));
         List<Executable> assertions = new ArrayList<>();
         if (StringUtils.isNotBlank(this.requestSpec.getStatus())) {
             assertions.add(assertValues(String.valueOf(this.responseStatusCode), this.requestSpec.getStatus(), "[==]", "Status code check"));
@@ -317,8 +327,7 @@ public class HttpRequestStep extends Step {
             try {
                 if (operator == null) {
                     Assertions.assertNotNull(actual, key);
-                }
-                if ("[==]".equals(operator)) {
+                }else if ("[==]".equals(operator)) {
                     Assertions.assertEquals(expected, actual, key);
                 } else if ("[!=]".equals(operator)) {
                     Assertions.assertNotEquals(expected, actual, key);
@@ -330,11 +339,33 @@ public class HttpRequestStep extends Step {
                     // TODO Impletement between
                     throw new UnsupportedOperationException("range compare implemented yet");
 //                    Assertions.assertTrue(StringUtils.contains(actual, expected), key);
+                }else{
+                    throw new UnsupportedOperationException("unsupported operator " + operator);
                 }
+                Console.print(colorize("Pass : " + key, TEXT_COLOR(66, 247, 112), BOLD()));
+                if(operator == null) {
+                    Console.print("    ", colorize("Actual: ", BOLD()),  actual);
+                    Console.print("    ", colorize("Expected: ", BOLD()),  "<not null>");
+                }else{
+                    Console.print("    ", colorize("Actual: ", BOLD()),  actual);
+                    Console.print("    ", colorize("Operator: ", BOLD()),  operator);
+                    Console.print("    ", colorize("Expected: ", BOLD()),  expected);
+                }
+
                 assertResults.add(new AssertResult(key, true, expected, actual));
             } catch (AssertionFailedError ex) {
                 String e = ex.getExpected() == null ? "" : ex.getExpected().getStringRepresentation();
                 String a = ex.getActual() == null ? "" : ex.getActual().getStringRepresentation();
+                Console.print(colorize("Fail : " + key, TEXT_COLOR(247, 66, 66), BOLD()));
+
+                if(operator == null) {
+                    Console.print("    ", colorize("Actual: ", BOLD()),  actual);
+                    Console.print("    ", colorize("Expected: ", BOLD()),  "<not null>");
+                }else{
+                    Console.print("    ", colorize("Actual: ", BOLD()),  actual);
+                    Console.print("    ", colorize("Operator: ", BOLD()),  operator);
+                    Console.print("    ", colorize("Expected: ", BOLD()),  expected);
+                }
                 assertResults.add(new AssertResult(key, false, e, a));
                 throw ex;
             }
@@ -373,7 +404,7 @@ public class HttpRequestStep extends Step {
                 return response;
             }
         } catch (Exception e) {
-            Log.debug("Error occurred", e.getMessage());
+            Log.error("Error occurred while getting value for expression = {}", expression);
             return null;
         }
         throw new RuntimeException("Unexpected type in assert");
@@ -568,10 +599,10 @@ public class HttpRequestStep extends Step {
     }
 
     private void printCurl() {
-        System.out.println("\n\n");
-        Console.print(colorize(" CURL ", BACK_COLOR(126, 153, 255), BLACK_TEXT(), BOLD()));
+        System.out.println("\n");
+        Console.print(colorize(" CURL ",  BACK_COLOR(90, 124, 255), BLACK_TEXT(), BOLD()));
         Console.print(colorize(generateCurlCommand()));
-        System.out.println("\n\n");
+        System.out.println("\n");
     }
 
 

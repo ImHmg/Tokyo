@@ -1,19 +1,7 @@
 name: Test Scenario
 description: Test Scenario description
 
-preSteps:
-  - id: registration
-    name: User registration
-    ref: specs/json/user-registration.yaml
-  - id: login
-    name: User login
-    ref: specs/json/user-login.yaml
-postSteps:
-  - id: registration 2
-    name: User registration 2
-    ref: specs/json/user-registration.yaml
-    configs:
-      username: "${prompt Enter name please ?}"
+
 steps:
   - id: add-product
     name: Add product
