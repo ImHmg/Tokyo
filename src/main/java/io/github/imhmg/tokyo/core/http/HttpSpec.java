@@ -1,4 +1,4 @@
-package io.github.imhmg.tokyo.http;
+package io.github.imhmg.tokyo.core.http;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

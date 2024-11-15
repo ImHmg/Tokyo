@@ -1,4 +1,4 @@
-package io.github.imhmg.tokyo.commons.spec;
+package io.github.imhmg.tokyo.core.spec;
 
 import lombok.*;
 

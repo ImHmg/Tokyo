@@ -1,6 +1,6 @@
 package io.github.imhmg.tokyo.core;
 
-import io.github.imhmg.tokyo.commons.spec.DataSpec;
+import io.github.imhmg.tokyo.core.spec.DataSpec;
 import lombok.Getter;
 import lombok.Setter;
 

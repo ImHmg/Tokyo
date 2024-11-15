@@ -1,5 +1,5 @@
 import io.github.imhmg.tokyo.TokyoRunner;
-import io.github.imhmg.tokyo.commons.spec.RunSpec;
+import io.github.imhmg.tokyo.core.spec.RunSpec;
 
 import java.util.List;
 import java.util.Map;

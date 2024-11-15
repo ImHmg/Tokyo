@@ -1,5 +1,6 @@
 package io.github.imhmg.tokyo.commons;
 
+import com.jayway.jsonpath.JsonPath;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +51,22 @@ public class ExpressionParser {
         }
 
         throw new IllegalArgumentException("Unable to parse expression = " + expression);
+    }
+
+    public static String extractValueByFormatAndExpression(String input, String format, String expression) {
+        try {
+            if (format.equals(JSON)) {
+                return JsonPath.parse(input).read(expression).toString();
+            } else if (format.equals(XML)) {
+                throw new UnsupportedOperationException("xml expression not implemented yet");
+            } else if (format.equals(RAW)) {
+                return input;
+            }
+        } catch (Exception e) {
+            Log.error("Error occurred while getting value for expression = {}", expression);
+            return null;
+        }
+        throw new IllegalArgumentException("Unexpected format " + format);
     }
 
     private static Result parseStatus(String expression) {

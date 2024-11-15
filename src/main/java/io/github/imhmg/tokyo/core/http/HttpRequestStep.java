@@ -1,15 +1,12 @@
-package io.github.imhmg.tokyo.http;
+package io.github.imhmg.tokyo.core.http;
 
-import io.github.imhmg.tokyo.commons.spec.StepSpec;
+import io.github.imhmg.tokyo.core.spec.StepSpec;
 import io.github.imhmg.tokyo.core.Context;
 import io.github.imhmg.tokyo.core.Step;
-import com.jayway.jsonpath.JsonPath;
 import io.github.imhmg.tokyo.commons.*;
 import io.restassured.RestAssured;
 import io.restassured.http.Header;
-import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
-import io.restassured.response.ResponseBodyExtractionOptions;
 import io.restassured.specification.ProxySpecification;
 import io.restassured.specification.RequestSpecification;
 import lombok.Getter;
@@ -37,12 +34,10 @@ public class HttpRequestStep extends Step {
             "[<!>]", "not contains"
     );
     private HttpSpec httpRequestSpec;
-    private Optional<ResponseBodyExtractionOptions> responseBody = Optional.empty();
-    private Map<String, String> responseHeaders = new HashMap<>();
-    private int responseStatusCode;
-    private long testExecutionTime;
+
+    private HttpResponse httpResponse;
     private boolean isExecutionSuccess = false;
-    private boolean isHttpRequestSuccess = false;
+    private boolean isHttpRequestFinished = false;
     private boolean isAllAssertsSuccess = false;
     private Exception httpRequestException;
     private List<AssertResult> assertionsResults = new ArrayList<>();
@@ -59,14 +54,13 @@ public class HttpRequestStep extends Step {
     @Override
     public boolean process() {
         this.sendRequest();
-        if (!isHttpRequestSuccess) {
+        if (!isHttpRequestFinished) {
             return false;
         }
-        printCurl();
-        List<Executable> executables = this.checkAsserts();
+        List<Executable> executables = this.processAsserts();
         Assertions.assertAll(this.getSpec().getName(), executables);
         isAllAssertsSuccess = true;
-        this.captures();
+        this.processCaptures();
         isExecutionSuccess = true;
         return true;
     }
@@ -87,6 +81,17 @@ public class HttpRequestStep extends Step {
         refFileContent = VariableParser.replaceVariables(refFileContent, this::getVar);
         Log.debug("Parse http spec file = {}", this.getSpec().getRef());
         return YamlParser.parse(refFileContent, HttpSpec.class);
+    }
+
+    private void parseDefines(HttpSpec spec) {
+        Log.debug("Parse defines");
+        if(spec == null) {
+            return;
+        }
+        for (Map.Entry<String, Object> entry : spec.getDefine().entrySet()) {
+            Log.debug("Parse defines add vars {} : {}", entry.getKey(), entry.getValue());
+            setVar(entry.getKey(), String.valueOf(entry.getValue()));
+        }
     }
 
     private void sendRequest() {
@@ -132,39 +137,28 @@ public class HttpRequestStep extends Step {
         }
 
         request = request.when();
-        long startTime = System.nanoTime();
         try {
             Response r = request.request(this.httpRequestSpec.getMethod(), this.httpRequestSpec.getEndpoint());
-            this.testExecutionTime = ((System.nanoTime() - startTime) / 1_000_000);
-            ExtractableResponse<Response> res = r.then().extract();
-            this.responseBody = Optional.of(res.body());
-            this.responseStatusCode = res.statusCode();
+            this.httpResponse = new HttpResponse(r.then().extract());
+            isHttpRequestFinished = true;
 
-            for (Header header : res.headers()) {
-                Log.debug("Response header: {} : {}", header.getName(), header.getValue());
-                responseHeaders.put(header.getName().toLowerCase(), header.getValue());
-            }
-            Log.debug("Response timing: {}ms", this.testExecutionTime);
-            Log.debug("Response code: {}", res.statusCode());
-            Log.debug("Response body: {}", res.body().asString());
-            Console.print(colorize(" Response ", BACK_COLOR(25, 217, 156), BLACK_TEXT(), BOLD()), colorize(" " + this.responseStatusCode + " " + HTTPStatus.httpStatusMap.get(this.responseStatusCode) + " [" + this.testExecutionTime + " ms] ", BACK_COLOR(85, 85, 85), TEXT_COLOR(255), BOLD()));
+            Log.debug("Response timing: {}ms", this.httpResponse.getTime());
+            Log.debug("Response code: {}", this.httpResponse.getStatus());
+            Log.debug("Response body: {}", this.httpResponse.getBody());
+
+            Console.print(colorize(" Response ", BACK_COLOR(25, 217, 156), BLACK_TEXT(), BOLD()), colorize(" " + this.httpResponse.getStatus() + " " + HTTPStatus.httpStatusMap.get(this.httpResponse.getStatus()) + " [" + this.httpResponse.getTime() + " ms] ", BACK_COLOR(85, 85, 85), TEXT_COLOR(255), BOLD()));
             Console.print("");
             Console.print(colorize("Response body", MAGENTA_TEXT(), BOLD()));
-            Console.print(colorize(this.responseBody.get().asPrettyString()));
+            Console.print(colorize(this.httpResponse.getPrettyBody()));
             Console.print("");
             Console.print(colorize("Response headers", MAGENTA_TEXT(), BOLD()));
-            for (Header header : res.headers()) {
-                Log.debug("Response header: {} : {}", header.getName(), header.getValue());
-                responseHeaders.put(header.getName().toLowerCase(), header.getValue());
+            for (Header header : this.httpResponse.getHeaders()) {
                 Console.print(colorize(header.getName() + " : ", BOLD()), colorize(header.getValue()));
             }
-            isHttpRequestSuccess = true;
         } catch (Exception e) {
             this.httpRequestException = e;
-            this.testExecutionTime = ((System.nanoTime() - startTime) / 1_000_000);
             Console.print(colorize(" ERROR OCCURRED ", BACK_COLOR(243, 80, 127), BLACK_TEXT(), BOLD()));
             Console.print(colorize(e.getMessage(), BOLD()));
-            printCurl();
             System.out.println("\n\n");
             e.printStackTrace();
             this.assertionsResults.add(new AssertResult("Exception occurred : " + e.getMessage(), false));
@@ -190,7 +184,7 @@ public class HttpRequestStep extends Step {
         return request;
     }
 
-    private void captures() {
+    private void processCaptures() {
         if (this.httpRequestSpec.getCaptures() == null) {
             Log.debug("No captures found");
             return;
@@ -199,21 +193,25 @@ public class HttpRequestStep extends Step {
         Console.print(colorize(" Captures ", BACK_COLOR(90, 124, 255), BLACK_TEXT(), BOLD()));
 
         for (Map.Entry<String, String> e : this.httpRequestSpec.getCaptures().entrySet()) {
-            String value = extractResponseValues(e.getValue());
+            String value = getResponseValuesByExpression(ExpressionParser.parseExpression(e.getValue()));
             Log.debug("Capture values, key: {}, value: {}", e.getKey(), value);
             Console.print(e.getKey()," = ", value);
             setVar(e.getKey(), value);
         }
     }
 
-    private List<Executable> checkAsserts() {
+    private List<Executable> processAsserts() {
         Log.debug("Start checking asserts");
         Console.print(colorize(" Assertions ", BACK_COLOR(90, 124, 255), BLACK_TEXT(), BOLD()));
+
         List<Executable> assertions = new ArrayList<>();
+
+        // Check http status code
         if (StringUtils.isNotBlank(this.httpRequestSpec.getStatus())) {
-            assertions.add(assertValues(String.valueOf(this.responseStatusCode), this.httpRequestSpec.getStatus(), "[==]", "Status code check"));
+            assertions.add(assertValues(String.valueOf(this.httpResponse.getStatus()), this.httpRequestSpec.getStatus(), "[==]", "Status code check"));
         }
 
+        // No asserts found
         if (this.httpRequestSpec.getAsserts() == null) {
             Log.debug("No asserts found");
             return assertions;
@@ -221,35 +219,12 @@ public class HttpRequestStep extends Step {
 
         for (Map.Entry<String, String> e : this.httpRequestSpec.getAsserts().entrySet()) {
             Log.debug("Start checking assert = {}, expression = {}", e.getKey(), e.getValue());
-            String assertKey = e.getKey();
-            String assertExpression = e.getValue();
-            String actualValue = null;
-            String operator = null;
-            String expectedValue = null;
-            if (StringUtils.startsWith(assertExpression, "@status")) {
-                actualValue = String.valueOf(this.responseStatusCode);
-                String exp = assertExpression.replaceFirst("@status ", "");
-                String[] parts = exp.split(" ");
-                if (parts.length == 2) {
-                    operator = parts[0];
-                    expectedValue = parts[1];
-                }
-            } else if (StringUtils.startsWith(assertExpression, "@header")) {
-                Map<String, String> parseHeaderAssertExpression = parseKVAssertExpression("@header", assertExpression);
-                String headerKey = parseHeaderAssertExpression.get("key");
-                actualValue = this.responseHeaders.get(headerKey.toLowerCase());
-                operator = parseHeaderAssertExpression.get("operator");
-                expectedValue = parseHeaderAssertExpression.get("value");
-            } else if (StringUtils.startsWith(assertExpression, "@body")) {
-                Map<String, String> parseBodyAssertExpression = parseBodyAssertExpression(assertExpression);
-                operator = parseBodyAssertExpression.get("operator");
-                expectedValue = parseBodyAssertExpression.get("value");
-                if (this.responseBody.isPresent()) {
-                    actualValue = getValuesByExpression(this.responseBody.get().asString(), parseBodyAssertExpression.get("type"), parseBodyAssertExpression.get("expression"));
-                }
-            }
-            assertions.add(assertValues(actualValue, expectedValue, operator, assertKey));
+            String assertMessage = e.getKey();
+            ExpressionParser.Result parseExpression = ExpressionParser.parseExpression(e.getValue());
+            String actualValue = getResponseValuesByExpression(parseExpression);
+            assertions.add(assertValues(actualValue, parseExpression.getExpectedValue(), parseExpression.getOperator(), assertMessage));
         }
+
         return assertions;
     }
 
@@ -304,156 +279,24 @@ public class HttpRequestStep extends Step {
         };
     }
 
-    public String extractResponseValues(String expression) {
+    public String getResponseValuesByExpression(ExpressionParser.Result parseExpression) {
         String value = null;
-        if (StringUtils.startsWith(expression, "@status")) {
-            value = String.valueOf(this.responseStatusCode);
-        } else if (StringUtils.startsWith(expression, "@header")) {
-            Map<String, String> parseHeaderAssertExpression = parseKVAssertExpression("@header", expression);
-            String headerKey = parseHeaderAssertExpression.get("key");
-            value = this.responseHeaders.get(headerKey.toLowerCase());
-        } else if (StringUtils.startsWith(expression, "@body")) {
-            Map<String, String> parseBodyAssertExpression = parseBodyAssertExpression(expression);
-            if (this.responseBody.isPresent()) {
-                value = getValuesByExpression(this.responseBody.get().asString(), parseBodyAssertExpression.get("type"), parseBodyAssertExpression.get("expression"));
-            }
-        } else {
-            throw new RuntimeException("Unable to parse expression " + expression);
+        if(parseExpression.getSource().equals(ExpressionParser.STATUS)) {
+            value = String.valueOf(this.httpResponse.getStatus());
+        } else if (parseExpression.getSource().equals(ExpressionParser.HEADER)) {
+            value = this.httpResponse.getHeaders().getValue(parseExpression.getKey());
+        } else if (parseExpression.getSource().equals(ExpressionParser.BODY) && this.httpResponse.getBody() != null) {
+            value = ExpressionParser.extractValueByFormatAndExpression(this.httpResponse.getBody(), parseExpression.getType(), parseExpression.getKey());
+        }else{
+            throw new IllegalArgumentException("Invalid source " + parseExpression.getSource());
         }
         return value;
     }
 
-    private String getValuesByExpression(String response, String type, String expression) {
-        try {
-            if (type.equals("json")) {
-                return JsonPath.parse(response).read(expression).toString();
-            } else if (type.equals("xml")) {
-//            return response.xmlPath().getString(expression);
-                // TODO : implement xml path and regex
-                throw new UnsupportedOperationException("xml path not implemented yet");
-            } else if (type.equals("raw")) {
-                return response;
-            }
-        } catch (Exception e) {
-            Log.error("Error occurred while getting value for expression = {}", expression);
-            return null;
-        }
-        throw new RuntimeException("Unexpected type in assert");
-    }
-
-    private Map<String, String> parseKVAssertExpression(String type, String expression) {
-        Map<String, String> result = new HashMap<>();
-        result.put("key", null);
-        result.put("operator", null);
-        result.put("value", null);
-
-        expression = expression.replaceFirst(type + " ", "");
-
-        String[] split = null;
-        for (String availableOperator : ASSERT_OPERATORS) {
-            if (expression.contains(" " + availableOperator + " ")) {
-                split = StringUtils.splitByWholeSeparator(expression, " " + availableOperator + " ", 2);
-                result.put("operator", availableOperator);
-            }
-        }
-        if (split == null) {
-            result.put("key", expression);
-        } else if (split.length == 2) {
-            result.put("value", split[1]);
-            result.put("key", split[0]);
-        }
-        return result;
-    }
-
-    /*
-        Parse body value extract expression to map
-        eg : @body json $.id [==] 1234
-        type = json
-        expression = $.id
-        operator = [==]
-        value = 1234
-     */
-    private Map<String, String> parseBodyAssertExpression(String input) {
-        String originalInput = input;
-        Map<String, String> result = new HashMap<>();
-        result.put("type", null);
-        result.put("expression", null);
-        result.put("operator", null);
-        result.put("value", null);
-
-        input = input.replaceFirst("@body ", "");
-        if (StringUtils.startsWith(input, "raw")) {
-            result.put("type", "raw");
-            input = input.replaceFirst("raw ", "");
-        } else if (StringUtils.startsWith(input, "json ")) {
-            result.put("type", "json");
-            input = input.replaceFirst("json ", "");
-        } else if (StringUtils.startsWith(input, "xml ")) {
-            result.put("type", "xml");
-            input = input.replaceFirst("xml ", "");
-        }
-
-        if (input.startsWith(" ")) {
-            input = input.substring(1);
-        }
-        if (StringUtils.isEmpty(input)) {
-            return result;
-        }
-        String[] split = null;
-        for (String availableOperator : ASSERT_OPERATORS) {
-            if (input.contains(" " + availableOperator + " ")) {
-                split = StringUtils.splitByWholeSeparator(input, " " + availableOperator + " ", 2);
-                result.put("operator", availableOperator);
-            }
-        }
-        if (split == null) {
-            result.put("expression", input);
-        } else if (split.length == 2) {
-            result.put("value", split[1]);
-            result.put("expression", split[0]);
-        } else if (split.length == 1) {
-            result.put("value", split[0]);
-        }
-        return result;
-    }
-
-    public String extractRequestValues(String expression) {
-        if (StringUtils.startsWith(expression, "@header")) {
-            Map<String, String> parseHeaderAssertExpression = parseKVAssertExpression("@header", expression);
-            String headerKey = parseHeaderAssertExpression.get("key");
-            return this.responseHeaders.get(headerKey.toLowerCase());
-        } else if (StringUtils.startsWith(expression, "@body")) {
-            Map<String, String> parseBodyAssertExpression = parseBodyAssertExpression(expression);
-            if (this.responseBody.isEmpty()) {
-                return null;
-            }
-            return getValuesByExpression(this.responseBody.get().asString(), parseBodyAssertExpression.get("type"), parseBodyAssertExpression.get("expression"));
-        } else if (StringUtils.startsWith(expression, "@queryParam")) {
-            Map<String, String> parsedComps = parseKVAssertExpression("@queryParam", expression);
-            String key = parsedComps.get("key");
-            return this.httpRequestSpec.getQueryParams().get(key);
-        } else if (StringUtils.startsWith(expression, "@formParam")) {
-            Map<String, String> parsedComps = parseKVAssertExpression("@formParam", expression);
-            String key = parsedComps.get("key");
-            return this.httpRequestSpec.getQueryParams().get(key);
-        } else if (StringUtils.startsWith(expression, "@url")) {
-            return this.httpRequestSpec.getEndpoint();
-        } else if (StringUtils.startsWith(expression, "@method")) {
-            return this.httpRequestSpec.getMethod();
-        }
-        throw new RuntimeException("Unable to parse expression " + expression);
-    }
 
     @Override
     public String getStepVariables(String key) {
-        if (key.startsWith(this.getSpec().getId() + ".request ")) {
-            key = key.replaceFirst(this.getSpec().getId() + ".request ", "");
-            return extractRequestValues(key);
-        }
-        if (key.startsWith(this.getSpec().getId() + ".response ")) {
-            key = key.replaceFirst(this.getSpec().getId() + ".response ", "");
-            return extractResponseValues(key);
-        }
+        // TODO implement step variables
         return null;
     }
 
@@ -464,7 +307,7 @@ public class HttpRequestStep extends Step {
 
     @Override
     public long getTime() {
-        return this.testExecutionTime;
+        return this.httpResponse.getTime();
     }
 
     @Override
@@ -506,21 +349,18 @@ public class HttpRequestStep extends Step {
         }
 
         StringBuilder response = new StringBuilder();
-        if (this.responseBody.isPresent()) {
-            response.append("<b>Response status: </b><i>").append(this.responseStatusCode).append("<br>");
-            if (!this.responseHeaders.isEmpty()) {
+        if (isHttpRequestFinished) {
+            response.append("<b>Response status: </b><i>").append(this.httpResponse.getStatus()).append("<br>");
+            if (!this.httpResponse.getHeaders().exist()) {
                 response.append("<b>Response headers: </b><i>").append("<br>");
-                for (Map.Entry<String, String> s : this.getResponseHeaders().entrySet()) {
-                    response.append("        ").append(s.getKey()).append(": ").append(s.getValue()).append("<br>");
+                for (Header s : this.httpResponse.getHeaders().asList()) {
+                    response.append("        ").append(s.getName()).append(": ").append(s.getValue()).append("<br>");
                 }
                 response.append("</i>");
             }
-            String body = null;
-            if (this.responseBody.isPresent()) {
-                body = this.responseBody.get().asPrettyString();
-            }
+            String body = this.httpResponse.getPrettyBody();
             response.append("<b>Response body: </b><i>").append("<br>").append(StringEscapeUtils.escapeHtml4(body)).append("</i><br>");
-            response.append("<b>Response time: </b><i>").append(this.testExecutionTime).append(" ms</i><br>");
+            response.append("<b>Response time: </b><i>").append(this.httpResponse.getTime()).append(" ms</i><br>");
         } else if (this.httpRequestException != null) {
             response.append("<b>Exception: </b><i>").append("").append(StringEscapeUtils.escapeHtml4(this.httpRequestException.getLocalizedMessage())).append("</i><br>");
         }
@@ -534,63 +374,6 @@ public class HttpRequestStep extends Step {
 
     public boolean isExecutionSuccess() {
         return this.isExecutionSuccess;
-    }
-
-    private void printCurl() {
-        System.out.println("\n");
-        Console.print(colorize(" CURL ",  BACK_COLOR(90, 124, 255), BLACK_TEXT(), BOLD()));
-        Console.print(colorize(generateCurlCommand()));
-        System.out.println("\n");
-    }
-
-    private String generateCurlCommand() {
-        StringBuilder curlCommand = new StringBuilder("curl -X ");
-        curlCommand.append(this.httpRequestSpec.getMethod()).append(" ");
-        curlCommand.append("'").append(this.httpRequestSpec.getEndpoint()).append("' ");
-
-        if (this.httpRequestSpec.getHeaders() != null && !this.httpRequestSpec.getHeaders().isEmpty()) {
-            curlCommand.append(" \\\n");
-            for (Map.Entry<String, String> e : this.httpRequestSpec.getHeaders().entrySet()) {
-                curlCommand.append("-H '").append(e.getKey()).append(": ")
-                        .append(e.getValue()).append("' ");
-            }
-        }
-
-        if (this.httpRequestSpec.getQueryParams() != null && !this.httpRequestSpec.getQueryParams().isEmpty()) {
-            curlCommand.append(" \\\n");
-            for (Map.Entry<String, String> e : this.httpRequestSpec.getQueryParams().entrySet()) {
-                curlCommand.append("--data-urlencode '").append(e.getKey()).append("=")
-                        .append(e.getValue()).append("' ");
-            }
-        }
-
-//        if (this.requestSpec.getFormBody() != null && !this.requestSpec.getFormBody().isEmpty()) {
-//            Console.print(colorize("Request form body", MAGENTA_TEXT(), BOLD()));
-//            for (Map.Entry<String, Object> e : this.requestSpec.getFormBody().entrySet()) {
-//                request = request.formParam(e.getKey(), e.getValue());
-//                Log.debug("Form param: {} : {}", this.requestSpec.getRawBody());
-//                Console.print(colorize(e.getKey() + " : ", BOLD()), colorize(e.getValue().toString()));
-//
-//            }
-//            Console.print("");
-//        }
-
-        if (this.httpRequestSpec.getBody() != null) {
-            curlCommand.append(" \\\n");
-            curlCommand.append("-d '").append(this.httpRequestSpec.getBody()).append("' ");
-        }
-        return curlCommand.toString();
-    }
-
-    private void parseDefines(HttpSpec spec) {
-        Log.debug("Parse defines");
-        if(spec == null) {
-            return;
-        }
-        for (Map.Entry<String, Object> entry : spec.getDefine().entrySet()) {
-            Log.debug("Parse defines add vars {} : {}", entry.getKey(), entry.getValue());
-            setVar(entry.getKey(), String.valueOf(entry.getValue()));
-        }
     }
 
 
