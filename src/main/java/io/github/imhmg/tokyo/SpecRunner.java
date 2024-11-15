@@ -1,6 +1,6 @@
 package io.github.imhmg.tokyo;
 
-import io.github.imhmg.tokyo.commons.ContentParser;
+import io.github.imhmg.tokyo.commons.VariableParser;
 import io.github.imhmg.tokyo.commons.FileReader;
 import io.github.imhmg.tokyo.commons.Log;
 import io.github.imhmg.tokyo.commons.YamlParser;
@@ -100,7 +100,7 @@ public class SpecRunner {
                         continue;
                     }
                     String inputValue = lines.get(i)[entry.getKey()];
-                    inputValue = ContentParser.replaceVariables(inputValue,this::getVariables);
+                    inputValue = VariableParser.replaceVariables(inputValue,this::getVariables);
                     data.put(entry.getValue(), inputValue) ;
                 }
                 dataSpec.setData(data);

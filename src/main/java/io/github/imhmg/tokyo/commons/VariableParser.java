@@ -6,7 +6,7 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContentParser {
+public class VariableParser {
 
     @FunctionalInterface
     public static interface ValueProvider {

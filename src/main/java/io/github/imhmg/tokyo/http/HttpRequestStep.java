@@ -76,7 +76,7 @@ public class HttpRequestStep extends Step {
         Log.debug("Read http spec file = {}", this.getSpec().getRef());
         String refFileContent = FileReader.readFile(this.getSpec().getRef());
         Log.debug("Populate http spec file = {}", this.getSpec().getRef());
-        refFileContent = ContentParser.replaceVariables(refFileContent, this::getVar);
+        refFileContent = VariableParser.replaceVariables(refFileContent, this::getVar);
         Log.debug("Parse http spec file = {}", this.getSpec().getRef());
         HttpSpec tempParse = YamlParser.parse(refFileContent, HttpSpec.class);
         parseDefines(tempParse);
@@ -84,7 +84,7 @@ public class HttpRequestStep extends Step {
         Log.debug("Read http spec file = {}", this.getSpec().getRef());
         refFileContent = FileReader.readFile(this.getSpec().getRef());
         Log.debug("Populate http spec file = {}", this.getSpec().getRef());
-        refFileContent = ContentParser.replaceVariables(refFileContent, this::getVar);
+        refFileContent = VariableParser.replaceVariables(refFileContent, this::getVar);
         Log.debug("Parse http spec file = {}", this.getSpec().getRef());
         return YamlParser.parse(refFileContent, HttpSpec.class);
     }
