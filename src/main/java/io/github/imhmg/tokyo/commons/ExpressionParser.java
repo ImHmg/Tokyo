@@ -1,13 +1,13 @@
 package io.github.imhmg.tokyo.commons;
 
 import com.jayway.jsonpath.JsonPath;
+import io.github.imhmg.tokyo.commons.assertions.Asserter;
+import io.github.imhmg.tokyo.commons.assertions.Operator;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ExpressionParser {
 
@@ -17,7 +17,7 @@ public class ExpressionParser {
         private String source;
         private String type;
         private String key;
-        private String operator;
+        private Operator operator;
         private String expectedValue;
     }
 
@@ -28,12 +28,10 @@ public class ExpressionParser {
     public static final String STATUS = "@status";
     private static final String REPLACE_STATUS = STATUS + " ";
 
-
     public static final String JSON = "json";
     public static final String XML = "xml";
     public static final String RAW = "raw";
 
-    private static final List<String> ASSERT_OPERATORS = List.of("[==]", "[!=]", "[<>]", "[<!>]");
     private static final List<String> BODY_EXPRESSION_TYPES = List.of("json.", "xml.", "raw");
 
     public static Result parseExpression(String expression) {
@@ -80,10 +78,9 @@ public class ExpressionParser {
         expression = expression.replaceFirst(REPLACE_STATUS, "");
         String[] parts = expression.split(" ");
         if (parts.length == 2) {
-            result.setOperator(parts[0]);
+            result.setOperator(Operator.getBySyntax(parts[0]));
             result.setExpectedValue(parts[1]);
         }
-        throwIfInvalidOperator(result.getOperator());
         return result;
     }
 
@@ -92,11 +89,9 @@ public class ExpressionParser {
         if (!expression.startsWith(REPLACE_HEADER)) {
             throw new IllegalArgumentException("Unable to parse expression " + expression);
         }
-
         expression = expression.replaceFirst(REPLACE_HEADER, "");
         Result result = parseKeyValueExpression(expression);
         result.setSource(HEADER);
-        throwIfInvalidOperator(result.getOperator());
         return result;
     }
 
@@ -118,9 +113,9 @@ public class ExpressionParser {
         expression = expression.replaceFirst(type, "");
 
         String[] split = null;
-        for (String operator : ASSERT_OPERATORS) {
-            if (expression.contains(" " + operator + " ")) {
-                split = StringUtils.splitByWholeSeparator(expression, " " + operator + " ", 2);
+        for (Operator operator : Operator.values()) {
+            if (expression.contains(" " + operator.getSyntax() + " ")) {
+                split = StringUtils.splitByWholeSeparator(expression, " " + operator.getSyntax() + " ", 2);
                 result.setOperator(operator);
             }
         }
@@ -133,7 +128,6 @@ public class ExpressionParser {
         } else if (split.length == 1) {
             result.setExpectedValue(split[0]);
         }
-        throwIfInvalidOperator(result.getOperator());
         if(result.getType().equals(RAW) && result.getKey() != null) {
             throw new IllegalArgumentException("Invalid expression. Key not expected for type raw " + expression);
         }
@@ -142,32 +136,20 @@ public class ExpressionParser {
 
     private static Result parseKeyValueExpression(String expression) {
         Result result = new Result();
-
         String[] split = null;
-        for (String operator : ASSERT_OPERATORS) {
-            if (expression.contains(" " + operator + " ")) {
-                split = StringUtils.splitByWholeSeparator(expression, " " + operator + " ", 2);
+        for (Operator operator : Operator.values()) {
+            if (expression.contains(" " + operator.getSyntax() + " ")) {
+                split = StringUtils.splitByWholeSeparator(expression, " " + operator.getSyntax() + " ", 2);
                 result.setOperator(operator);
             }
         }
-
         if (split == null) {
             result.setKey(expression);
         } else if (split.length == 2) {
             result.setKey(split[0]);
             result.setExpectedValue(split[1]);
         }
-
         return result;
-    }
-
-    private static void throwIfInvalidOperator(String operator) {
-        if (operator == null) {
-            return;
-        }
-        if (!ASSERT_OPERATORS.contains(operator)) {
-            throw new IllegalArgumentException("Invalid operator. Check expression again : " + operator);
-        }
     }
 
     private static String fixBodyType(String capturedType) {
@@ -180,6 +162,5 @@ public class ExpressionParser {
         }
         throw new IllegalArgumentException("Invalid body capture type");
     }
-
 
 }

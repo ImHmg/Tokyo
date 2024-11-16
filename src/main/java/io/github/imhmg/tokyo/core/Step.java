@@ -1,6 +1,6 @@
 package io.github.imhmg.tokyo.core;
 
-import io.github.imhmg.tokyo.commons.AssertResult;
+import io.github.imhmg.tokyo.commons.assertions.AssertResult;
 import io.github.imhmg.tokyo.commons.Console;
 import io.github.imhmg.tokyo.commons.Log;
 import io.github.imhmg.tokyo.core.spec.StepSpec;

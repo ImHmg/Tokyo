@@ -1,5 +1,6 @@
 package io.github.imhmg.tokyo.commons;
 
+import io.github.imhmg.tokyo.commons.assertions.Operator;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,7 +33,7 @@ class ExpressionParserTest {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@header Authorization [==] Value");
         assertEquals("@header", result.getSource());
         assertEquals("Authorization", result.getKey());
-        assertEquals("[==]", result.getOperator());
+        assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Value", result.getExpectedValue());
     }
 
@@ -41,7 +42,7 @@ class ExpressionParserTest {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@header Spaced Header [==] Spaced Value");
         assertEquals("@header", result.getSource());
         assertEquals("Spaced Header", result.getKey());
-        assertEquals("[==]", result.getOperator());
+        assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Spaced Value", result.getExpectedValue());
     }
 
@@ -57,7 +58,7 @@ class ExpressionParserTest {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@header Spaced Header [==] Spaced Value [==] Some Value");
         assertEquals("@header", result.getSource());
         assertEquals("Spaced Header", result.getKey());
-        assertEquals("[==]", result.getOperator());
+        assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Spaced Value [==] Some Value", result.getExpectedValue());
     }
 
@@ -71,7 +72,7 @@ class ExpressionParserTest {
     public void parseStatus_2() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@status [==] 200");
         assertEquals("@status", result.getSource());
-        assertEquals("[==]", result.getOperator());
+        assertEquals(Operator.EQ, result.getOperator());
         assertEquals("200", result.getExpectedValue());
     }
 
@@ -94,7 +95,7 @@ class ExpressionParserTest {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@body raw [==] Some Value");
         assertEquals("@body", result.getSource());
         assertEquals("raw", result.getType());
-        assertEquals("[==]", result.getOperator());
+        assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Some Value", result.getExpectedValue());
     }
 
@@ -132,7 +133,7 @@ class ExpressionParserTest {
         assertEquals("@body", result.getSource());
         assertEquals("json", result.getType());
         assertEquals("$.id", result.getKey());
-        assertEquals("[==]", result.getOperator());
+        assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Some Value", result.getExpectedValue());
     }
 
@@ -143,7 +144,7 @@ class ExpressionParserTest {
         assertEquals("@body", result.getSource());
         assertEquals("json", result.getType());
         assertEquals("$.id=='some'", result.getKey());
-        assertEquals("[==]", result.getOperator());
+        assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Some Value", result.getExpectedValue());
     }
 
@@ -153,7 +154,7 @@ class ExpressionParserTest {
         assertEquals("@body", result.getSource());
         assertEquals("xml", result.getType());
         assertEquals("$.id=='some'", result.getKey());
-        assertEquals("[==]", result.getOperator());
+        assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Some Value", result.getExpectedValue());
     }
 

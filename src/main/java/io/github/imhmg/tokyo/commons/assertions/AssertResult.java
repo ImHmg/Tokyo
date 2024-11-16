@@ -1,4 +1,4 @@
-package io.github.imhmg.tokyo.commons;
+package io.github.imhmg.tokyo.commons.assertions;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

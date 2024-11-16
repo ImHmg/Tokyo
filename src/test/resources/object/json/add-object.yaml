@@ -1,12 +1,9 @@
 Name: Add Object
-
 Method: POST
 Endpoint: ${server}/objects
 Status: 200
-Headers:
-  Content-Type: application/json
 
-RawBody: |
+JsonBody: |
   {
     "name": "${name}",
     "data": {
@@ -17,9 +14,9 @@ RawBody: |
     }
   }
 Asserts:
-  "id not null" : "@body json $.id"
+  "id not null" : "@body json.$.id"
 
 Captures:
-  "id" : "@body json $.id"
-  "price" : "@body json $.data.price"
-  "size" : "@body json $.data['Hard disk size']"
+  "id" : "@body json.$.id"
+  "price" : "@body json.$.data.price"
+  "size" : "@body json.$.data['Hard disk size']"

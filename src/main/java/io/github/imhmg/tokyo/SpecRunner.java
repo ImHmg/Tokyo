@@ -60,7 +60,9 @@ public class SpecRunner {
                 configs.putAll(env);
             }
         }
-        configs.putAll(this.runSpec.getConfigs());
+        if(this.runSpec.getConfigs() != null) {
+            configs.putAll(this.runSpec.getConfigs());
+        }
         Log.debug("All loaded config for scenario = {}", configs);
         this.spec.setConfigs(configs);
         parseInputFile();

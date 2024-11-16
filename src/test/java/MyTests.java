@@ -11,7 +11,6 @@ public class MyTests extends TokyoRunner {
                         .scenarioSpecFile("object/object-scenario.yaml")
                         .inputFile("object/object-inputs.csv")
                         .configFiles(List.of("object/env/local.yaml"))
-                        .configs(Map.of("server", "localhost"))
                         .build());
     }
 }

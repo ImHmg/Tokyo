@@ -23,6 +23,7 @@ public class HttpResponse {
         this.time = response.time();
         this.prettyBody = response.asPrettyString();
         this.headers = response.headers();
+        this.status = response.statusCode();
     }
 
 
