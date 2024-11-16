@@ -54,6 +54,7 @@ public class ProductsMockAPI extends Dispatcher {
         return new MockResponse()
                 .setResponseCode(200)
                 .addHeader("Authorization", validToken)
+                .addHeader("Content-Type", "application/json")
                 .setBody("{\"status\": \"success\"}");
     }
 
@@ -84,6 +85,7 @@ public class ProductsMockAPI extends Dispatcher {
             products.put(id, new Product(id, name, price, stock, supplierName));
             return new MockResponse()
                     .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
                     .setBody(objectMapper.writeValueAsString(products.get(id)));
         } catch (Exception e) {
             return new MockResponse().setResponseCode(400).setBody("{\"error\": \"Invalid JSON body\"}");
@@ -101,7 +103,9 @@ public class ProductsMockAPI extends Dispatcher {
 
             if (products.containsKey(id)) {
                 products.remove(id);
-                return new MockResponse().setResponseCode(200).setBody("{\"status\": \"success\"}");
+                return new MockResponse().setResponseCode(200)
+                        .addHeader("Content-Type", "application/json")
+                        .setBody("{\"status\": \"success\"}");
             } else {
                 return new MockResponse()
                         .setResponseCode(404)
@@ -129,6 +133,7 @@ public class ProductsMockAPI extends Dispatcher {
                 products.put(id, new Product(id, name, price, stock, supplierName));
                 return new MockResponse()
                         .setResponseCode(200)
+                        .addHeader("Content-Type", "application/json")
                         .setBody(objectMapper.writeValueAsString(products.get(id)));
             } else {
                 return new MockResponse()
@@ -150,6 +155,7 @@ public class ProductsMockAPI extends Dispatcher {
             try {
                 return new MockResponse()
                         .setResponseCode(200)
+                        .addHeader("Content-Type", "application/json")
                         .setBody(objectMapper.writeValueAsString(products.get(id)));
             } catch (Exception e) {
                 return new MockResponse().setResponseCode(500).setBody("{\"error\": \"Error generating JSON response\"}");
@@ -166,6 +172,7 @@ public class ProductsMockAPI extends Dispatcher {
         try {
             return new MockResponse()
                     .setResponseCode(200)
+                    .addHeader("Content-Type", "application/json")
                     .setBody(objectMapper.writeValueAsString(products.values()));
         } catch (Exception e) {
             return new MockResponse().setResponseCode(500).setBody("{\"error\": \"Error generating JSON response\"}");

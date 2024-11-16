@@ -9,3 +9,15 @@ steps:
   - id: product-add
     name: Product Add
     ref: product/requests/product-add.yaml
+  - id: product-get
+    name: Product Get
+    ref: product/requests/product-get.yaml
+  - id: product-update
+    name: Product Update
+    ref: product/requests/product-update.yaml
+  - id: product-get-2
+    name: Product Get After Update
+    ref: product/requests/product-get.yaml
+  - id: product-remove
+    name: Product Remove
+    ref: product/requests/product-remove.yaml

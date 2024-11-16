@@ -1,0 +1,17 @@
+Name: Product Get
+Method: GET
+Endpoint: ${server}/products/get/${id}
+Status: 200
+Headers:
+  Authorization: ${authorization}
+
+
+Asserts:
+  "id is ${id}" : "@body json.$.id [==] ${id}"
+  "name is ${name}" : "@body json.$.name [==] ${name}"
+  "price is ${price}" : "@body json.$.price [==] ${price}"
+  "stock is ${stock}" : "@body json.$.stock [==] ${stock}"
+  "supplierName is ${supplier}" : "@body json.$.supplierName [==] ${supplier}"
+
+Captures:
+  "productId" : "@body json.$.id"

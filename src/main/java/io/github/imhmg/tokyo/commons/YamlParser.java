@@ -22,12 +22,4 @@ public class YamlParser {
         }
     }
 
-    public static <T> T parse(String text, TypeReference<T> tClass) {
-        try {
-            return mapper.readValue(text, tClass);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
 }

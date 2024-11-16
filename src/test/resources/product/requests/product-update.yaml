@@ -1,16 +1,22 @@
 Name: Product Update
 Method: POST
-Endpoint: ${server}/products/add
+Endpoint: ${server}/products/update
 Status: 200
 Headers:
   Authorization: ${authorization}
+
+Define:
+  name: "${faker book.title}"
+  price: "${faker numerify '##.##'}"
+  stock: "${faker numerify '##'}"
+  supplier: "${faker company.name}"
 
 JsonBody: |
   {
     "id": "${id}",
     "name": "${name}",
-    "price": ${price},
-    "stock": ${stock},
+    "price": "${price}",
+    "stock": "${stock}",
     "supplierName": "${supplier}"
   }
 

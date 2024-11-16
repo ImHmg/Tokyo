@@ -1,0 +1,14 @@
+Name: Product Remove
+Method: POST
+Endpoint: ${server}/products/remove
+Status: 200
+Headers:
+  Authorization: ${authorization}
+
+JsonBody: |
+  {
+    "id": "${id}"
+  }
+
+Asserts:
+  "status is success" : "@body json.$.status [==] success"
