@@ -1,0 +1,11 @@
+Name: Login
+Method: POST
+Endpoint: ${server}/login
+Status: 200
+
+Asserts:
+  "Authorization not null" : "@header Authorization"
+  "Status is success" : "@body json.$.status [==] success"
+
+Captures:
+  "authorization" : "@header Authorization"

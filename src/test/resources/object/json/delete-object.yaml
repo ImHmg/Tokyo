@@ -1,7 +1,0 @@
-Name: Delete Object
-Method: DELETE
-Endpoint: ${server}/objects/${id}
-Status: 200
-
-Asserts:
-  "message not null" : "@body json $.message"

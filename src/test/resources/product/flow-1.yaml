@@ -1,0 +1,11 @@
+name: Product Flow 1
+
+preSteps:
+  - id: login
+    name: Login
+    ref: product/requests/login.yaml
+
+steps:
+  - id: product-add
+    name: Product Add
+    ref: product/requests/product-add.yaml

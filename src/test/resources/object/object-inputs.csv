@@ -1,2 +1,0 @@
-#Name#,name,year,model,size
-TestScenario_PC1,PC-Alpha,2020,Intel i5,${faker regexify '[0-9]{3}'}GB

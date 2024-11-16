@@ -4,6 +4,7 @@ import io.github.imhmg.tokyo.commons.VariableParser;
 import io.github.imhmg.tokyo.commons.FileReader;
 import io.github.imhmg.tokyo.commons.Log;
 import io.github.imhmg.tokyo.commons.YamlParser;
+import io.github.imhmg.tokyo.core.TokyoFaker;
 import io.github.imhmg.tokyo.core.spec.DataSpec;
 import io.github.imhmg.tokyo.core.spec.RunSpec;
 import io.github.imhmg.tokyo.core.spec.ScenarioSpec;
@@ -110,7 +111,6 @@ public class SpecRunner {
             }
             this.spec.setInputs(inputs);
         }catch (Exception e) {
-
             throw new RuntimeException("Error while parsing input file", e);
         }
     }
@@ -181,6 +181,10 @@ public class SpecRunner {
     }
 
     private String getVariables(String key) {
+        String value = TokyoFaker.get(key);
+        if(value != null) {
+            return value;
+        }
         if(this.spec.getConfigs().containsKey(key)) {
             return String.valueOf(this.spec.getConfigs().get(key));
         }

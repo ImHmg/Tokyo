@@ -1,0 +1,26 @@
+Name: Product Add
+Method: POST
+Endpoint: ${server}/products/add
+Status: 200
+Headers:
+  Authorization: ${authorization}
+
+JsonBody: |
+  {
+    "id": "${id}",
+    "name": "${name}",
+    "price": "${price}",
+    "stock": "${stock}",
+    "supplierName": "${supplier}"
+  }
+
+
+Asserts:
+  "id is ${id}" : "@body json.$.id [==] ${id}"
+  "name is ${name}" : "@body json.$.name [==] ${name}"
+  "price is ${price}" : "@body json.$.price [==] ${price}"
+  "stock is ${stock}" : "@body json.$.stock [==] ${stock}"
+  "supplierName is ${supplier}" : "@body json.$.supplierName [==] ${supplier}"
+
+Captures:
+  "productId" : "@body json.$.id"
