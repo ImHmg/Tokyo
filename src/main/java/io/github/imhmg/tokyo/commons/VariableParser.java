@@ -45,7 +45,7 @@ public class VariableParser {
         return replaceVariables(content, provider, round);
     }
 
-    public static List<String> parseVariables(String text) {
+    private static List<String> parseVariables(String text) {
         List<String> variables = new ArrayList<>();
         int length = text.length();
         StringBuilder currentVariable = new StringBuilder();
