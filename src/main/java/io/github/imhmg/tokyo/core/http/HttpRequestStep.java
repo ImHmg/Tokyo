@@ -242,12 +242,12 @@ public class HttpRequestStep extends Step {
 
     public String getResponseValuesByExpression(ExpressionParser.Result parseExpression) {
         String value = null;
-        if (parseExpression.getSource().equals(ExpressionParser.STATUS)) {
+        if (parseExpression.getSource() == ExpressionParser.Source.STATUS) {
             value = String.valueOf(this.httpResponse.getStatus());
-        } else if (parseExpression.getSource().equals(ExpressionParser.HEADER)) {
+        } else if (parseExpression.getSource() == ExpressionParser.Source.HEADER) {
             value = this.httpResponse.getHeaders().getValue(parseExpression.getKey());
-        } else if (parseExpression.getSource().equals(ExpressionParser.BODY) && this.httpResponse.getBody() != null) {
-            value = ExpressionParser.extractValueByFormatAndExpression(this.httpResponse.getBody(), parseExpression.getType(), parseExpression.getKey());
+        } else if (parseExpression.getSource() == ExpressionParser.Source.BODY && this.httpResponse.getBody() != null) {
+            value = ExpressionParser.extractValueByFormatAndExpression(this.httpResponse.getBody(), parseExpression.getFormat(), parseExpression.getKey());
         } else {
             throw new IllegalArgumentException("Invalid source " + parseExpression.getSource());
         }

@@ -1,63 +1,102 @@
 package io.github.imhmg.tokyo.commons;
 
 import com.jayway.jsonpath.JsonPath;
-import io.github.imhmg.tokyo.commons.assertions.Asserter;
 import io.github.imhmg.tokyo.commons.assertions.Operator;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
 
 public class ExpressionParser {
 
     @Getter
     @Setter
     public static class Result {
-        private String source;
-        private String type;
+        private Source source;
+        private Format format;
         private String key;
         private Operator operator;
         private String expectedValue;
     }
 
-    public static final String BODY = "@body";
-    private static final String REPLACE_BODY = BODY + " ";
-    public static final String HEADER = "@header";
-    private static final String REPLACE_HEADER = HEADER + " ";
-    public static final String STATUS = "@status";
-    private static final String REPLACE_STATUS = STATUS + " ";
+    @Getter
+    public enum Source {
+        BODY("@body", "@body "),
+        HEADER("@header", "@header "),
+        STATUS("@status", "@status ");
 
-    public static final String JSON = "json";
-    public static final String XML = "xml";
-    public static final String RAW = "raw";
+        private final String replace;
+        private final String syntax;
 
-    private static final List<String> BODY_EXPRESSION_TYPES = List.of("json.", "xml.", "raw");
+        Source(String syntax, String replace) {
+            this.syntax = syntax;
+            this.replace = replace;
+        }
+        public static Source getBySyntax(String syntax) {
+            for (Source op : values()) {
+                if (op.getSyntax().equals(syntax)) {
+                    return op;
+                }
+            }
+            throw new IllegalArgumentException("No Source with syntax " + syntax + " found.");
+        }
+    }
+
+    @Getter
+    public enum Format {
+        JSON("json", "json."),
+        XML("xml", "xml."),
+        RAW("raw", "raw");
+
+        private final String syntax;
+        private final String format;
+
+        Format(String format, String syntax) {
+            this.format = format;
+            this.syntax = syntax;
+        }
+        public static Format getByFormat(String format) {
+            for (Format op : values()) {
+                if (op.getFormat().equals(format)) {
+                    return op;
+                }
+            }
+            throw new IllegalArgumentException("No Format with format " + format + " found.");
+        }
+
+        public static Format getBySyntax(String syntax) {
+            for (Format op : values()) {
+                if (op.getSyntax().equals(syntax)) {
+                    return op;
+                }
+            }
+            throw new IllegalArgumentException("No Format with syntax " + syntax + " found.");
+        }
+    }
 
     public static Result parseExpression(String expression) {
 
-        if (StringUtils.startsWith(expression, STATUS)) {
+        if (StringUtils.startsWith(expression, Source.STATUS.syntax)) {
             return parseStatus(expression);
         }
 
-        if (StringUtils.startsWith(expression, HEADER)) {
+        if (StringUtils.startsWith(expression, Source.HEADER.syntax)) {
             return parseHeader(expression);
         }
 
-        if (StringUtils.startsWith(expression, BODY)) {
+        if (StringUtils.startsWith(expression, Source.BODY.syntax)) {
             return parseBody(expression);
         }
 
         throw new IllegalArgumentException("Unable to parse expression = " + expression);
     }
 
-    public static String extractValueByFormatAndExpression(String input, String format, String expression) {
+    public static String extractValueByFormatAndExpression(String input, Format format, String expression) {
         try {
-            if (format.equals(JSON)) {
+            if (format == Format.JSON) {
                 return JsonPath.parse(input).read(expression).toString();
-            } else if (format.equals(XML)) {
+            } else if (format == Format.XML) {
                 throw new UnsupportedOperationException("xml expression not implemented yet");
-            } else if (format.equals(RAW)) {
+            } else if (format == Format.RAW) {
                 return input;
             }
         } catch (Exception e) {
@@ -69,13 +108,13 @@ public class ExpressionParser {
 
     private static Result parseStatus(String expression) {
 
-        if (!expression.startsWith(REPLACE_STATUS) && !expression.equals(STATUS)) {
+        if (!expression.startsWith(Source.STATUS.replace) && !expression.equals(Source.STATUS.syntax)) {
             throw new IllegalArgumentException("Unable to parse expression " + expression);
         }
 
         Result result = new Result();
-        result.setSource(STATUS);
-        expression = expression.replaceFirst(REPLACE_STATUS, "");
+        result.setSource(Source.STATUS);
+        expression = expression.replaceFirst(Source.STATUS.replace, "");
         String[] parts = expression.split(" ");
         if (parts.length == 2) {
             result.setOperator(Operator.getBySyntax(parts[0]));
@@ -86,31 +125,31 @@ public class ExpressionParser {
 
     private static Result parseHeader(String expression) {
 
-        if (!expression.startsWith(REPLACE_HEADER)) {
+        if (!expression.startsWith(Source.HEADER.replace)) {
             throw new IllegalArgumentException("Unable to parse expression " + expression);
         }
-        expression = expression.replaceFirst(REPLACE_HEADER, "");
+        expression = expression.replaceFirst(Source.HEADER.replace, "");
         Result result = parseKeyValueExpression(expression);
-        result.setSource(HEADER);
+        result.setSource(Source.HEADER);
         return result;
     }
 
     private static Result parseBody(String expression) {
         Result result = new Result();
-        result.setSource(BODY);
-        expression = expression.replaceFirst(REPLACE_BODY, "");
-        String type = null;
-        for (String et : BODY_EXPRESSION_TYPES) {
-            if (expression.startsWith(et)) {
-                type = et;
+        result.setSource(Source.BODY);
+        expression = expression.replaceFirst(Source.BODY.replace, "");
+        Format format = null;
+        for (Format et : Format.values()) {
+            if (expression.startsWith(et.syntax)) {
+                format = et;
                 break;
             }
         }
-        if (type == null) {
+        if (format == null) {
             throw new IllegalArgumentException("Invalid @body expression. @body expression should be @body json.$.id [==] value");
         }
-        result.setType(fixBodyType(type));
-        expression = expression.replaceFirst(type, "");
+        result.setFormat(format);
+        expression = expression.replaceFirst(format.syntax, "");
 
         String[] split = null;
         for (Operator operator : Operator.values()) {
@@ -128,8 +167,8 @@ public class ExpressionParser {
         } else if (split.length == 1) {
             result.setExpectedValue(split[0]);
         }
-        if(result.getType().equals(RAW) && result.getKey() != null) {
-            throw new IllegalArgumentException("Invalid expression. Key not expected for type raw " + expression);
+        if(result.getFormat() == Format.RAW && result.getKey() != null) {
+            throw new IllegalArgumentException("Invalid expression. Key not expected for format raw " + expression);
         }
         return result;
     }
@@ -150,17 +189,6 @@ public class ExpressionParser {
             result.setExpectedValue(split[1]);
         }
         return result;
-    }
-
-    private static String fixBodyType(String capturedType) {
-        if(capturedType.startsWith(JSON)) {
-            return JSON;
-        }else if(capturedType.startsWith(XML)) {
-            return XML;
-        }else if(capturedType.startsWith(RAW)) {
-            return RAW;
-        }
-        throw new IllegalArgumentException("Invalid body capture type");
     }
 
 }

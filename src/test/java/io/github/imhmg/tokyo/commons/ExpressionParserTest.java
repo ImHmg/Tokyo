@@ -10,14 +10,14 @@ class ExpressionParserTest {
     @Test
     public void parseHeader_1() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@header Authorization");
-        assertEquals("@header", result.getSource());
+        assertEquals(ExpressionParser.Source.HEADER, result.getSource());
         assertEquals("Authorization", result.getKey());
     }
 
     @Test
     public void parseHeader_2() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@header Spaced Header");
-        assertEquals("@header", result.getSource());
+        assertEquals(ExpressionParser.Source.HEADER, result.getSource());
         assertEquals("Spaced Header", result.getKey());
     }
 
@@ -31,7 +31,7 @@ class ExpressionParserTest {
     @Test
     public void parseHeader_4() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@header Authorization [==] Value");
-        assertEquals("@header", result.getSource());
+        assertEquals(ExpressionParser.Source.HEADER, result.getSource());
         assertEquals("Authorization", result.getKey());
         assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Value", result.getExpectedValue());
@@ -40,7 +40,7 @@ class ExpressionParserTest {
     @Test
     public void parseHeader_5() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@header Spaced Header [==] Spaced Value");
-        assertEquals("@header", result.getSource());
+        assertEquals(ExpressionParser.Source.HEADER, result.getSource());
         assertEquals("Spaced Header", result.getKey());
         assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Spaced Value", result.getExpectedValue());
@@ -49,14 +49,14 @@ class ExpressionParserTest {
     @Test
     public void parseHeader_6() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@header Spaced Header [<<<] Value");
-        assertEquals("@header", result.getSource());
+        assertEquals(ExpressionParser.Source.HEADER, result.getSource());
         assertEquals("Spaced Header [<<<] Value", result.getKey());
     }
 
     @Test
     public void parseHeader_7() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@header Spaced Header [==] Spaced Value [==] Some Value");
-        assertEquals("@header", result.getSource());
+        assertEquals(ExpressionParser.Source.HEADER, result.getSource());
         assertEquals("Spaced Header", result.getKey());
         assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Spaced Value [==] Some Value", result.getExpectedValue());
@@ -65,13 +65,13 @@ class ExpressionParserTest {
     @Test
     public void parseStatus_1() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@status");
-        assertEquals("@status", result.getSource());
+        assertEquals(ExpressionParser.Source.STATUS, result.getSource());
     }
 
     @Test
     public void parseStatus_2() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@status [==] 200");
-        assertEquals("@status", result.getSource());
+        assertEquals(ExpressionParser.Source.STATUS, result.getSource());
         assertEquals(Operator.EQ, result.getOperator());
         assertEquals("200", result.getExpectedValue());
     }
@@ -93,8 +93,8 @@ class ExpressionParserTest {
     @Test
     public void parseBody_1() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@body raw [==] Some Value");
-        assertEquals("@body", result.getSource());
-        assertEquals("raw", result.getType());
+        assertEquals(ExpressionParser.Source.BODY, result.getSource());
+        assertEquals(ExpressionParser.Format.RAW, result.getFormat());
         assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Some Value", result.getExpectedValue());
     }
@@ -102,8 +102,8 @@ class ExpressionParserTest {
     @Test
     public void parseBody_2() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@body raw");
-        assertEquals("@body", result.getSource());
-        assertEquals("raw", result.getType());
+        assertEquals(ExpressionParser.Source.BODY, result.getSource());
+        assertEquals(ExpressionParser.Format.RAW, result.getFormat());
     }
 
     @Test
@@ -130,8 +130,8 @@ class ExpressionParserTest {
     @Test
     public void parseBody_6() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@body json.$.id [==] Some Value");
-        assertEquals("@body", result.getSource());
-        assertEquals("json", result.getType());
+        assertEquals(ExpressionParser.Source.BODY, result.getSource());
+        assertEquals(ExpressionParser.Format.JSON, result.getFormat());
         assertEquals("$.id", result.getKey());
         assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Some Value", result.getExpectedValue());
@@ -141,8 +141,8 @@ class ExpressionParserTest {
     @Test
     public void parseBody_7() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@body json.$.id=='some' [==] Some Value");
-        assertEquals("@body", result.getSource());
-        assertEquals("json", result.getType());
+        assertEquals(ExpressionParser.Source.BODY, result.getSource());
+        assertEquals(ExpressionParser.Format.JSON, result.getFormat());
         assertEquals("$.id=='some'", result.getKey());
         assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Some Value", result.getExpectedValue());
@@ -151,8 +151,8 @@ class ExpressionParserTest {
     @Test
     public void parseBody_8() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@body xml.$.id=='some' [==] Some Value");
-        assertEquals("@body", result.getSource());
-        assertEquals("xml", result.getType());
+        assertEquals(ExpressionParser.Source.BODY, result.getSource());
+        assertEquals(ExpressionParser.Format.XML, result.getFormat());
         assertEquals("$.id=='some'", result.getKey());
         assertEquals(Operator.EQ, result.getOperator());
         assertEquals("Some Value", result.getExpectedValue());
@@ -161,8 +161,8 @@ class ExpressionParserTest {
     @Test
     public void parseBody_9() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@body xml.$.id=='some'");
-        assertEquals("@body", result.getSource());
-        assertEquals("xml", result.getType());
+        assertEquals(ExpressionParser.Source.BODY, result.getSource());
+        assertEquals(ExpressionParser.Format.XML, result.getFormat());
         assertEquals("$.id=='some'", result.getKey());
     }
 
@@ -176,8 +176,8 @@ class ExpressionParserTest {
     @Test
     public void parseBody_11() {
         ExpressionParser.Result result = ExpressionParser.parseExpression("@body xml.$.id=='some' [<<>>] Some");
-        assertEquals("@body", result.getSource());
-        assertEquals("xml", result.getType());
+        assertEquals(ExpressionParser.Source.BODY, result.getSource());
+        assertEquals(ExpressionParser.Format.XML, result.getFormat());
         assertEquals("$.id=='some' [<<>>] Some", result.getKey());
     }
 
