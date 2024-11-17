@@ -11,7 +11,7 @@ public class FileReader {
         if(path == null) {
             throw new RuntimeException("File name cannot be null");
         }
-        if(path.startsWith("file://")) {
+        if(isFileExists(path)) {
             return new String(readFiles(path));
         }
         return new String(readClassPath(path));
@@ -35,6 +35,10 @@ public class FileReader {
         }catch (Exception e) {
             throw new RuntimeException("Unable to read file = " + path, e);
         }
+    }
+
+    private static boolean isFileExists(String path) {
+        return new File(path).exists();
     }
 
 }
