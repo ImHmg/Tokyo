@@ -39,7 +39,7 @@
             border-radius: 10px
         }
         .test-section-header {
-          margin-bottom: 10px;
+          margin-bottom: 5px;
           background: #0984e3ba;
           color: white;
           padding: 10px;
@@ -59,8 +59,8 @@
 <body>
 
 <div id="app" class="container">
-    <div class="p-3 mb-4 title" style="background:#0984e3ba; color: white; text-align: center;  border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;">
-        <h1>{{ reportData.title }}</h1>
+    <div class="p-3 mb-4 title" style="background:#0984e3ba; color: white; text-align: center;  border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+        <h3>{{ reportData.title }}</h3>
     </div>
     <div class="summery" style="border-radius: 10px;" >
         <table class="table table-bordered table-nonfluid">
@@ -119,13 +119,19 @@
         <div class="test-section" v-for="(section, index) in reportData.sections" :key="section.title"
              v-if="(filterOps == '1' && section.status) || (filterOps == '2' && !section.status) || filterOps == '0'">
             <div class="test-section-header">
-                <div class="accordion-header" :id="'heading' + index">
+                <div class="accordion-header" >
                        <span :class="section.status ? 'badge bg-green' : 'badge bg-red'" align="center">
                                     <b>{{ section.status ? '✓ Passed' : '✗ Failed' }}</b>
                                 </span> <b>{{ section.title }}</b>
+
                 </div>
             </div>
             <div class="test-section-body">
+                <div align="right" style=" margin-bottom: 5px;">
+                     <span style="font-size: 0.85em; padding-right: 10px; color: #636e72">
+                    <b> <i> Total: {{section.totalSteps}} | Passed: {{section.passedSteps}} | Failed: {{section.failedSteps}}</i></b>
+                    </span>
+                </div>
                 <table class="table table-bordered">
                     <tr v-for="step in section.steps" :key="step.name"
                         v-if="(filterOps == '1' && step.status) || (filterOps == '2' && !step.status) || filterOps == '0'">
