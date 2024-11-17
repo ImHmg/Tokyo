@@ -24,4 +24,23 @@ public class RunSpec {
         }
         return reportSpec;
     }
+
+    @Getter
+    @Setter
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class ReportSpec {
+        private String file;
+        private String dir;
+        private String title;
+        private String user;
+        private Completion completion;
+
+        @FunctionalInterface
+        public static interface Completion {
+            public void completion(String reportFilePath);
+        }
+    }
+
 }

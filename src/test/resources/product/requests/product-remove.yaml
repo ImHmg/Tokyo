@@ -1,7 +1,7 @@
 Name: Product Remove
 Method: POST
 Endpoint: ${server}/products/remove
-Status: 202
+Status: 200
 Headers:
   Authorization: ${authorization}
 

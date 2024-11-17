@@ -26,6 +26,11 @@ public class ProductFlowTest extends TokyoRunner {
                 .inputFile("product/product-input.csv")
                 .scenarioSpecFile("product/flow-1.yaml")
                 .configs(Map.of("port", "" + 52001, "domain", mockWebServer.getHostName()))
+                .reportSpec(RunSpec.ReportSpec.builder()
+                        .title("Custom title")
+                        .file("test_file_1.html")
+                        .dir("mydir/")
+                        .build())
                 .build();
 
         TokyoRunner.addRunSpec(spec);

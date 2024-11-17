@@ -21,21 +21,29 @@ public class ReportGenerator {
 
     public static void generateReports(List<SpecRunner> specs) {
 
-
         for (SpecRunner spec : specs) {
             Object report = generateReportForSpecRunner(spec);
-            String filename = spec.getRunSpec().getReportSpec().getFile();
-            if (filename == null) {
-                filename = StringUtils.defaultString(System.getenv("TKY_REPORT_DIR"), "build/tokyo");
+            String file = spec.getRunSpec().getReportSpec().getFile();
+            String dir = spec.getRunSpec().getReportSpec().getDir();
+
+            if (file == null) {
                 String r = spec.getSpec().getName();
                 r = r.replaceAll("[\\\\/:*?\"<>|]", "_");
-                r = r + "_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".html";
-                filename += "/" + r;
+                file = r + "_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".html";
             }
-            saveTestReport(JsonParser.toJson(report), filename);
+
+            if(dir == null) {
+                dir = StringUtils.defaultString(System.getenv("TKY_REPORT_DIR"), "build/tokyo");
+            }
+
+            if(!dir.endsWith("/")) {
+                dir += "/";
+            }
+
+            saveTestReport(JsonParser.toJson(report), dir + file);
             if (spec.getRunSpec().getReportSpec().getCompletion() != null) {
                 Log.debug("Calling completion block");
-                spec.getRunSpec().getReportSpec().getCompletion().completion(filename);
+                spec.getRunSpec().getReportSpec().getCompletion().completion(dir + file);
             }
         }
     }
@@ -44,7 +52,7 @@ public class ReportGenerator {
         Map<String, Object> report = new HashMap<>();
 
         // Set title
-        String title = spec.getRunSpec().getReportSpec().getReportTitle();
+        String title = spec.getRunSpec().getReportSpec().getTitle();
         if (StringUtils.isEmpty(title)) {
             title = spec.getSpec().getName();
         }
