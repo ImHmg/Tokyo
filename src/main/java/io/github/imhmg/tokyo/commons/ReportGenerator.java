@@ -10,6 +10,7 @@ import io.restassured.http.Header;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,82 +23,111 @@ public class ReportGenerator {
 
 
         for (SpecRunner spec : specs) {
-
-            Map<String, Object> report = new HashMap<>();
-
-            String title = spec.getRunSpec().getReportSpec().getReportTitle();
-            if(StringUtils.isEmpty(title)) {
-                title = spec.getSpec().getName();
-            }
-
-            String user = spec.getRunSpec().getReportSpec().getUser();
-            if(StringUtils.isEmpty(user)) {
-                user = System.getProperty("user.name");
-            }
-
-            report.put("title", title);
-            report.put("date",  new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
-            report.put("user", user);
-            List<Object> sections = new ArrayList<>();
-            report.put("sections", sections);
-
-
-            int total = 0;
-            int passed = 0;
-            int failed = 0;
-
-            for (Map.Entry<String, List<Step>> e : spec.getScenario().getSteps().entrySet()) {
-                Map<String, Object> section = new HashMap<>();
-                section.put("title", e.getKey());
-                section.put("steps", new ArrayList<>());
-                section.put("status", true);
-                for (Step step : e.getValue()) {
-
-                    Map<String, Object> s = new HashMap<>();
-                    s.put("name", step.getSpec().getName());
-                    s.put("status", step.isPassed());
-                    total++;
-                    if(!step.isPassed()) {
-                        section.put("status", false);
-                        failed++;
-                    }else{
-                        passed++;
-                    }
-                    s.put("asserts", new ArrayList<>());
-                    for (AssertResult assertsResult : step.getAssertsResults()) {
-                        ((ArrayList)s.get("asserts")).add(assertsResult);
-                    }
-                    s.put("details", step.getAdditionalDetails());
-                    s.put("time", step.getTime());
-                    ((ArrayList)section.get("steps")).add(s);
-                }
-                sections.add(section);
-            }
-            report.put("totalCount", total);
-            report.put("passedCount", passed);
-            report.put("failedCount", failed);
-
+            Object report = generateReportForSpecRunner(spec);
             String filename = spec.getRunSpec().getReportSpec().getFile();
-            if(filename == null) {
+            if (filename == null) {
                 filename = StringUtils.defaultString(System.getenv("TKY_REPORT_DIR"), "build/tokyo");
                 String r = spec.getSpec().getName();
                 r = r.replaceAll("[\\\\/:*?\"<>|]", "_");
-                r = r + "_" +new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".html";
+                r = r + "_" + new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date()) + ".html";
                 filename += "/" + r;
             }
             saveTestReport(JsonParser.toJson(report), filename);
-            if(spec.getRunSpec().getReportSpec().getCompletion() != null) {
+            if (spec.getRunSpec().getReportSpec().getCompletion() != null) {
                 Log.debug("Calling completion block");
                 spec.getRunSpec().getReportSpec().getCompletion().completion(filename);
             }
         }
     }
 
+    private static Map<String, Object> generateReportForSpecRunner(SpecRunner spec) {
+        Map<String, Object> report = new HashMap<>();
+
+        // Set title
+        String title = spec.getRunSpec().getReportSpec().getReportTitle();
+        if (StringUtils.isEmpty(title)) {
+            title = spec.getSpec().getName();
+        }
+
+        // Set user
+        String user = spec.getRunSpec().getReportSpec().getUser();
+        if (StringUtils.isEmpty(user)) {
+            user = System.getProperty("user.name");
+        }
+
+        report.put("title", title);
+        report.put("user", user);
+        report.put("date", new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date()));
+        List<Map<String, Object>> sections = getSectionsReport(spec);
+
+        int totalSteps = 0;
+        int passedSteps = 0;
+        int failedSteps = 0;
+        int totalSections = sections.size();
+        int passedSections = 0;
+        int failedSections = 0;
+
+        for (Map<String, Object> o : sections) {
+            if (o.get("status").equals(true)) {
+                passedSections++;
+            } else {
+                failedSections++;
+            }
+            totalSteps += NumberUtils.toInt(o.get("totalSteps").toString(), 0);
+            passedSteps += NumberUtils.toInt(o.get("passedSteps").toString(), 0);
+            failedSteps += NumberUtils.toInt(o.get("failedSteps").toString(), 0);
+        }
+        report.put("totalSteps", totalSteps);
+        report.put("passedSteps", passedSteps);
+        report.put("failedSteps", failedSteps);
+        report.put("totalSections", totalSections);
+        report.put("passedSections", passedSections);
+        report.put("failedSections", failedSections);
+
+        report.put("sections", sections);
+        return report;
+    }
+
+    private static List<Map<String, Object>> getSectionsReport(SpecRunner spec) {
+        List<Map<String, Object>> sections = new ArrayList<>();
+        for (Map.Entry<String, List<Step>> e : spec.getScenario().getSteps().entrySet()) {
+            Map<String, Object> section = new HashMap<>();
+            section.put("title", e.getKey());
+            section.put("steps", new ArrayList<>());
+            int totalSteps = e.getValue().size();
+            int passedSteps = 0;
+            int failedSteps = 0;
+            List<Object> steps = new ArrayList<>();
+            for (Step step : e.getValue()) {
+                Map<String, Object> s = new HashMap<>();
+                s.put("name", step.getSpec().getName());
+                s.put("status", step.isPassed());
+                if (step.isPassed()) {
+                    passedSteps++;
+                } else {
+                    failedSteps++;
+                }
+                s.put("asserts", step.getAssertsResults());
+                s.put("details", step.getAdditionalDetails());
+                s.put("time", step.getTime());
+                steps.add(s);
+            }
+            section.put("steps", steps);
+            section.put("totalSteps", totalSteps);
+            section.put("passedSteps", passedSteps);
+            section.put("failedSteps", failedSteps);
+            section.put("status", failedSteps == 0);
+            sections.add(section);
+        }
+        return sections;
+    }
+
+
     private static void saveTestReport(String content, String filePath) {
         String s = FileReader.readFile("tky-test-report.html");
         String testdata = s.replace("__TESTDATA__", content);
         File file = new File(filePath);
-        if(!file.getParentFile().exists()) {
+        if (!file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
         }
         try {
