@@ -80,9 +80,9 @@ public class Scenario {
             return DynamicTest.dynamicTest("Step : " + step.getSpec().getName(), () -> {
                 String inputName = "";
                 if(context.getInputs().getName() != null) {
-                    inputName = "["+ context.getInputs().getName() + "] ";
+                    inputName = "For: ["+ context.getInputs().getName() + "] ";
                 }
-                Console.print(colorize(" Start " + inputName + "[" + s.getSpec().getName() + "] ", BACK_COLOR(171, 142, 255), BOLD(), BLACK_TEXT()));
+                Console.print(colorize(" Start " + inputName + " Step: [" + s.getSpec().getName() + "] ", BACK_COLOR(171, 142, 255), BOLD(), BLACK_TEXT()));
                 Console.print("");
                 Log.debug("Start pre processing {}", spec.getName());
                 s.preProcess();
@@ -92,7 +92,7 @@ public class Scenario {
                     s.postProcess();
                 }
                 Console.print("");
-                Console.print(colorize(" End [" + s.getSpec().getName() + "] ", BACK_COLOR(192, 192, 192), BOLD(), BLACK_TEXT()));
+                Console.print(colorize(" End " + inputName + "[" + s.getSpec().getName() + "] ", BACK_COLOR(192, 192, 192), BOLD(), BLACK_TEXT()));
                 Log.debug("End post processing {}", spec.getName());
                 Console.print("\n");
             });
