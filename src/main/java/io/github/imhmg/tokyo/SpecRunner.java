@@ -83,9 +83,6 @@ public class SpecRunner {
             if(header.length == 0) {
                 throw new RuntimeException("Input files invalid header, header should be in #Name#,col1,col2,col3....");
             }
-            if(!Objects.equals(header[0], "#Name#")) {
-                throw new RuntimeException("Input files invalid header, header should be in #Name#,col1,col2,col3....");
-            }
             Map<Integer, String> format = new HashMap<>();
             for (int i = 0; i < header.length; i++) {
                 format.put(i, header[i]);
@@ -96,15 +93,19 @@ public class SpecRunner {
                     throw new RuntimeException("Input files invalid row (column count doesnt match) " + i);
                 }
                 DataSpec dataSpec = new DataSpec();
-                dataSpec.setName(lines.get(i)[0]);
+
                 Map<String, Object> data = new HashMap<>();
                 for (Map.Entry<Integer, String> entry : format.entrySet()) {
                     if(Objects.equals(entry.getValue(), "#Name#")) {
+                        dataSpec.setName(lines.get(i)[entry.getKey()]);
                         continue;
                     }
                     String inputValue = lines.get(i)[entry.getKey()];
                     inputValue = VariableParser.replaceVariables(inputValue,this::getVariables);
                     data.put(entry.getValue(), inputValue) ;
+                }
+                if(dataSpec.getName() == null) {
+                    dataSpec.setName("Case " + i);
                 }
                 dataSpec.setData(data);
                 inputs.add(dataSpec);

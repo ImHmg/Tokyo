@@ -1,0 +1,5 @@
+id,name,price,stock,supplier
+${faker regexify '[a-z]{15}'},${faker book.title},${faker numerify '##.##'},${faker numerify '##'},${faker dog.name}
+${faker regexify '[a-z]{15}'},${faker book.title},${faker numerify '##.##'},${faker numerify '##'},${faker dog.name}
+${faker regexify '[a-z]{15}'},${faker book.title},${faker numerify '##.##'},${faker numerify '##'},${faker dog.name}
+${faker regexify '[a-z]{15}'},${faker book.title},${faker numerify '##.##'},${faker numerify '##'},${faker dog.name}
